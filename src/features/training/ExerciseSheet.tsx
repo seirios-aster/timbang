@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { getExercise } from '@/domain/training/exercises';
 import { adviseLoad, lastLog } from '@/domain/training/loads';
 import { swapKey } from '@/domain/training/program';
+import { liftStats } from '@/domain/training/stats';
 import type { Equipment, Exercise, ExerciseLog, Lifter, PlannedExercise, Workout } from '@/domain/training/types';
-import { displayWeight, toKg, UNIT_SYSTEMS, type WeightUnit } from '@/domain/training/units';
+import { displayWeight, fromKg, toKg, UNIT_SYSTEMS, type WeightUnit } from '@/domain/training/units';
 import { fmtShortDate } from '@/lib/date';
-import { fmtRest } from '@/lib/format';
+import { fmtInt, fmtRest } from '@/lib/format';
 import { useTrainingStore } from '@/state/trainingStore';
 import { Button } from '@/ui/Button';
 import { Icon } from '@/ui/Icon';
@@ -118,6 +119,7 @@ export function ExerciseSheet({ workout, slot, logs, lifter, equipment, unit, to
   const done = logs.find((log) => log.exerciseId === exercise.id && log.date === today);
   const advice = adviseLoad(exercise, planned, previous, lifter, unit);
   const stamp = BASIS_STAMP[advice.basis];
+  const best = liftStats(logs, exercise.id);
 
   return (
     <Sheet open onClose={onClose} eyebrow={exercise.muscles} title={exercise.name}>
@@ -145,6 +147,12 @@ export function ExerciseSheet({ workout, slot, logs, lifter, equipment, unit, to
             <p className={`mono ${styles.last}`}>
               Last time, {fmtShortDate(previous.date)}: {fmtLoad(previous.weightKg, exercise, unit)} ×{' '}
               {previous.reps.join(', ')}
+            </p>
+          )}
+          {best?.heaviest && best.strongest?.oneRepMaxKg && (
+            <p className={`mono ${styles.last}`}>
+              Best ever: {fmtLoad(best.heaviest.weightKg, exercise, unit)} × {best.heaviest.topReps} · est. max{' '}
+              {fmtInt(fromKg(best.strongest.oneRepMaxKg, unit))} {unit}
             </p>
           )}
         </section>

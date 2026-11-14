@@ -111,6 +111,19 @@
   width: 100%;
 }
 
+.recordList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  width: 100%;
+  padding-top: var(--s3);
+  border-top: 2px dashed var(--ink);
+}
+
+.recordList li {
+  font-weight: 600;
+}
+
 .summaryTitle {
   margin-top: var(--s1);
   font-size: var(--display-md);

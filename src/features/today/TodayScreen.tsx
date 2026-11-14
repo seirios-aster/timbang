@@ -1,14 +1,16 @@
 import type { Route } from '@/app/router';
 import { getFood } from '@/domain/foods/catalog';
 import { planKey } from '@/domain/mealplan/generator';
-import { dayTotals, mealTotals } from '@/domain/mealplan/totals';
+import { mealTotals } from '@/domain/mealplan/totals';
+import { eatenTotals } from '@/domain/mealplan/tracking';
 import { estimateMinutes, nextWorkout } from '@/domain/training/program';
 import { sortByDate } from '@/domain/progress/trend';
 import { GOAL_LABEL } from '@/features/target/copy';
 import { useProgram } from '@/features/training/useProgram';
 import { DAYS, todayIndex, todayIso } from '@/lib/date';
 import { fmtDecimal, fmtInt } from '@/lib/format';
-import { usePlanStore } from '@/state/planStore';
+import { useDayLog, useMealLogStore } from '@/state/mealLogStore';
+import { effectiveDay, usePlanStore } from '@/state/planStore';
 import { useProfileStore } from '@/state/profileStore';
 import { useProgressStore } from '@/state/progressStore';
 import { useTargets } from '@/state/useTargets';
@@ -27,7 +29,10 @@ export function TodayScreen({ go }: TodayScreenProps) {
   const profile = useProfileStore((state) => state.profile);
   const prefs = useProfileStore((state) => state.prefs);
   const week = usePlanStore((state) => state.week);
+  const override = usePlanStore((state) => state.override);
   const buildPlan = usePlanStore((state) => state.build);
+  const markMeal = useMealLogStore((state) => state.markMeal);
+  const dayLog = useDayLog(todayIso());
   const entries = useProgressStore((state) => state.entries);
   const logs = useTrainingStore((state) => state.logs);
   const session = useTrainingStore((state) => state.session);
@@ -52,8 +57,9 @@ export function TodayScreen({ go }: TodayScreenProps) {
 
   // Eat
   const planIsCurrent = week?.builtFor === planKey(targets, prefs);
-  const day = planIsCurrent ? week?.days[dayIndex] : undefined;
-  const eaten = day ? dayTotals(day) : null;
+  const day = planIsCurrent && week ? effectiveDay(week, override, dayIndex) : undefined;
+  const eaten = eatenTotals(dayLog);
+  const left = Math.round(targets.calories - eaten.kcal);
 
   // Weigh in
   const weighIns = sortByDate(entries);
@@ -144,28 +150,55 @@ export function TodayScreen({ go }: TodayScreenProps) {
             Eat
           </h2>
           <p className={`mono ${styles.macros}`}>
-            P {fmtInt(targets.proteinG)} · C {fmtInt(targets.carbsG)} · F {fmtInt(targets.fatG)} g
+            P {fmtInt(eaten.protein)}/{fmtInt(targets.proteinG)} · C {fmtInt(eaten.carbs)}/{fmtInt(targets.carbsG)} · F{' '}
+            {fmtInt(eaten.fat)}/{fmtInt(targets.fatG)} g
           </p>
         </div>
         <p className={`display ${styles.big}`}>
-          {fmtInt(targets.calories)} <span className={styles.unit}>kcal</span>
+          {fmtInt(eaten.kcal)} <span className={styles.unit}>of {fmtInt(targets.calories)} kcal</span>
+        </p>
+        <div className={styles.progress} aria-hidden="true">
+          <span style={{ width: `${Math.min(100, (eaten.kcal / targets.calories) * 100)}%` }} />
+        </div>
+        <p className={styles.sub}>
+          {eaten.kcal === 0
+            ? 'Tick each meal as you eat it.'
+            : left >= 0
+              ? `${fmtInt(left)} kcal left today.`
+              : `${fmtInt(-left)} kcal over today.`}
         </p>
 
-        {day && eaten ? (
+        {day ? (
           <>
             <ul className={styles.meals}>
-              {day.meals.map((meal) => (
-                <li key={meal.id} className={styles.meal}>
-                  <span className={styles.mealName}>{meal.label}</span>
-                  <span className={`mono ${styles.mealKcal}`}>{fmtInt(mealTotals(meal).kcal)}</span>
-                  <span className={styles.mealItems}>
-                    {meal.items.map((item) => getFood(item.foodId).name).join(', ')}
-                  </span>
-                </li>
-              ))}
+              {day.meals.map((meal) => {
+                const tracked = dayLog.meals[meal.id];
+                const isEaten = tracked?.status === 'eaten';
+                const isSkipped = tracked?.status === 'skipped';
+                return (
+                  <li key={meal.id} className={isSkipped ? styles.mealSkipped : styles.meal}>
+                    <span className={styles.mealName}>{meal.label}</span>
+                    <span className={`mono ${styles.mealKcal}`}>
+                      {isSkipped ? 'skipped' : fmtInt((tracked?.totals ?? mealTotals(meal)).kcal)}
+                    </span>
+                    <span className={styles.mealItems}>
+                      {meal.items.map((item) => getFood(item.foodId).name).join(', ')}
+                    </span>
+                    <button
+                      type="button"
+                      className={isEaten ? styles.tickOn : styles.tick}
+                      aria-pressed={isEaten}
+                      aria-label={`${meal.label}: ${isEaten ? 'eaten. Undo' : 'mark as eaten'}`}
+                      onClick={() => markMeal(today, meal.id, isEaten ? null : 'eaten', mealTotals(meal))}
+                    >
+                      {isEaten && <Icon name="check" size={18} />}
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
             <Button variant="outline" onClick={() => go('meals')}>
-              Portions and swaps
+              Skip, swap or add food
             </Button>
           </>
         ) : (

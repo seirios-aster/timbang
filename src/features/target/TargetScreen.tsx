@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Route } from '@/app/router';
 import { planKey } from '@/domain/mealplan/generator';
 import { fmtDecimal, fmtInt, fmtSigned } from '@/lib/format';
+import { useMealLogStore } from '@/state/mealLogStore';
 import { usePlanStore } from '@/state/planStore';
 import { useProfileStore } from '@/state/profileStore';
 import { useProgressStore } from '@/state/progressStore';
@@ -29,6 +30,7 @@ export function TargetScreen({ go }: TargetScreenProps) {
   const clearPlan = usePlanStore((state) => state.clear);
   const clearProgress = useProgressStore((state) => state.clear);
   const clearTraining = useTrainingStore((state) => state.clear);
+  const clearMealLog = useMealLogStore((state) => state.clear);
   const targets = useTargets();
   const [confirmingReset, setConfirmingReset] = useState(false);
 
@@ -45,6 +47,7 @@ export function TargetScreen({ go }: TargetScreenProps) {
     clearPlan();
     clearProgress();
     clearTraining();
+    clearMealLog();
     resetProfile();
   };
 

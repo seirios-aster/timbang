@@ -7,6 +7,7 @@ import {
   type Session,
   type SessionSummary,
 } from '@/domain/training/session';
+import { findRecords } from '@/domain/training/stats';
 import type { Equipment, ExerciseLog, Swaps, Workout } from '@/domain/training/types';
 import type { WeightUnit } from '@/domain/training/units';
 import { todayIso } from '@/lib/date';
@@ -70,9 +71,13 @@ export const useTrainingStore = create<TrainingState>()(
       finishSession: (workout) =>
         set((state) => {
           if (!state.session) return state;
+          const added = sessionLogs(state.session, workout);
           return {
-            logs: mergeLogs(state.logs, sessionLogs(state.session, workout)),
-            summary: summarize(state.session, workout, Date.now()),
+            logs: mergeLogs(state.logs, added),
+            summary: {
+              ...summarize(state.session, workout, Date.now()),
+              records: findRecords(state.logs, added),
+            },
             session: null,
           };
         }),

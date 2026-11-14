@@ -1,3 +1,4 @@
+import type { LiftRecord } from './stats';
 import type { ExerciseLog, Workout } from './types';
 
 /**
@@ -46,6 +47,8 @@ export interface SessionSummary {
   setsPlanned: number;
   liftsDone: number;
   liftsPlanned: number;
+  /** Personal records set in this session. Filled in when the session is saved. */
+  records?: LiftRecord[];
 }
 
 const setsDoneFor = (session: Session, slot: number) => session.sets[slot]?.length ?? 0;

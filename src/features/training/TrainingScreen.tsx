@@ -86,7 +86,7 @@ export function TrainingScreen() {
         </button>
       </div>
 
-      {summary && <SessionSummary summary={summary} onDismiss={dismissSummary} />}
+      {summary && <SessionSummary summary={summary} unit={unit} onDismiss={dismissSummary} />}
 
       <header className={styles.split}>
         <h1 className={`display ${styles.splitName}`}>{program.split.name}</h1>

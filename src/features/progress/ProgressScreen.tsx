@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { paceReport, sortByDate, trend, daysBetween } from '@/domain/progress/trend';
 import { fmtShortDate } from '@/lib/date';
 import { fmtDecimal, fmtSigned } from '@/lib/format';
@@ -5,9 +6,11 @@ import { useProfileStore } from '@/state/profileStore';
 import { useProgressStore } from '@/state/progressStore';
 import { useTargets } from '@/state/useTargets';
 import { Button } from '@/ui/Button';
+import { ChoiceList } from '@/ui/ChoiceList';
 import { Icon } from '@/ui/Icon';
 import { Stamp } from '@/ui/Stamp';
 import { paceCopy } from './copy';
+import { LiftsPanel } from './LiftsPanel';
 import styles from './ProgressScreen.module.css';
 import { TrendChart } from './TrendChart';
 import { WeighInForm } from './WeighInForm';
@@ -21,6 +24,7 @@ export function ProgressScreen() {
   const entries = useProgressStore((state) => state.entries);
   const remove = useProgressStore((state) => state.remove);
   const targets = useTargets();
+  const [view, setView] = useState<'weight' | 'lifts'>('weight');
 
   if (!profile || !targets) return null;
 
@@ -33,8 +37,33 @@ export function ProgressScreen() {
 
   const needsRetarget = latest && Math.abs(latest.weightKg - profile.weightKg) >= RETARGET_AFTER_KG;
 
+  const switcher = (
+    <ChoiceList
+      name="progress-view"
+      legend="Show progress for"
+      hideLegend
+      layout="cells"
+      value={view}
+      onChange={setView}
+      choices={[
+        { value: 'weight', title: 'Body weight' },
+        { value: 'lifts', title: 'Lifts' },
+      ]}
+    />
+  );
+
+  if (view === 'lifts') {
+    return (
+      <div className={styles.screen}>
+        {switcher}
+        <LiftsPanel />
+      </div>
+    );
+  }
+
   return (
     <div className={styles.screen}>
+      {switcher}
       <section className={styles.hero} aria-labelledby="progress-heading">
         <h1 id="progress-heading" className="eyebrow">
           {latest ? `Last weigh-in · ${fmtShortDate(latest.date)}` : 'Progress'}
