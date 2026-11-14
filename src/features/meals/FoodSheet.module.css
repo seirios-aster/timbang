@@ -1,0 +1,160 @@
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+}
+
+.gloss {
+  color: var(--ink-2);
+}
+
+.portion {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  border: var(--border);
+  border-radius: var(--radius);
+  background: var(--ground);
+}
+
+.step {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 4rem;
+  border: 0;
+  background: transparent;
+}
+
+.step:first-child {
+  border-right: var(--border);
+}
+
+.step:last-child {
+  border-left: var(--border);
+}
+
+.step:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.step:active:not(:disabled) {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+
+.step:focus-visible {
+  outline-offset: -3px;
+}
+
+.amount {
+  font-family: var(--font-display);
+  font-size: var(--display-md);
+  font-weight: 800;
+  line-height: 1;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.macros {
+  display: grid;
+  grid-template-columns: repeat(5, auto);
+  justify-content: space-between;
+  gap: var(--s2);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.macros dt {
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.macros dd {
+  font-size: var(--text-md);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.swaps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  padding-top: var(--s4);
+  border-top: var(--border);
+}
+
+.swapHeading {
+  font-size: var(--display-sm);
+}
+
+.swapLead,
+.none {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+.list {
+  display: grid;
+  margin-top: var(--s2);
+  border: var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.list li + li {
+  border-top: 1px solid var(--rule-strong);
+}
+
+.option {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 2px var(--s3);
+  width: 100%;
+  padding: var(--s3) var(--s3);
+  border: 0;
+  background: var(--surface);
+  text-align: left;
+  transition: background-color 120ms;
+}
+
+.option:focus-visible {
+  outline-offset: -3px;
+}
+
+.option:active {
+  background: var(--paper);
+}
+
+@media (hover: hover) {
+  .option:hover {
+    background: var(--paper);
+  }
+}
+
+.optionName {
+  font-weight: 600;
+}
+
+.optionKcal {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.optionDetail,
+.optionDelta {
+  grid-column: 1 / -1;
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}
+
+.optionDelta {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
