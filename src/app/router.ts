@@ -4,10 +4,10 @@ import { useCallback, useSyncExternalStore } from 'react';
  * A tiny hash router. Each screen is a plain `#name`, which works on any static
  * host and keeps the back button and shareable links working.
  */
-export const ROUTES = ['target', 'meals', 'training', 'progress', 'start'] as const;
+export const ROUTES = ['today', 'target', 'meals', 'training', 'progress', 'start'] as const;
 export type Route = (typeof ROUTES)[number];
 
-const DEFAULT_ROUTE: Route = 'target';
+const DEFAULT_ROUTE: Route = 'today';
 
 function readRoute(): Route {
   const name = window.location.hash.replace(/^#/, '');

@@ -2,9 +2,10 @@ import { describe, expect, it } from 'vitest';
 import type { Experience } from '../nutrition/types';
 import { EXERCISES, getExercise } from './exercises';
 import { adviseLoad, lastLog, platesPerSide, roundLoad, startingLoad } from './loads';
-import { alternatives, buildProgram, estimateMinutes, nextWorkout, swapKey } from './program';
+import { alternatives, buildProgram, estimateMinutes, nextWorkout, searchExercises, swapKey } from './program';
 import { splitForDays } from './splits';
 import type { Equipment, ExerciseLog, Lifter } from './types';
+import { displayWeight, toKg } from './units';
 
 const EQUIPMENT: Equipment[] = ['gym', 'dumbbells', 'bodyweight'];
 const LEVELS: Experience[] = ['beginner', 'intermediate', 'advanced'];
@@ -73,7 +74,7 @@ describe('buildProgram', () => {
     expect([plank.repsMin, plank.repsMax]).toEqual([30, 60]);
   });
 
-  it('keeps a swap, and ignores one that does not fit', () => {
+  it('keeps a swap, including one outside the suggestions', () => {
     const base = buildProgram(4, 'beginner', 'gym')!.week[0]!;
     const first = base.exercises[0]!;
     const option = alternatives(base, first, 'gym')[0]!;
@@ -82,8 +83,26 @@ describe('buildProgram', () => {
     const swapped = buildProgram(4, 'beginner', 'gym', { [swapKey(base.id, first.slot)]: option.id })!.week[0]!;
     expect(swapped.exercises[0]!.exerciseId).toBe(option.id);
 
-    const ignored = buildProgram(4, 'beginner', 'gym', { [swapKey(base.id, first.slot)]: 'leg-curl' })!.week[0]!;
-    expect(ignored.exercises[0]!.exerciseId).toBe(first.exerciseId);
+    // Any exercise can be chosen, even one that trains something else or needs other equipment.
+    const free = buildProgram(4, 'beginner', 'gym', { [swapKey(base.id, first.slot)]: 'push-up' })!.week[0]!;
+    expect(free.exercises[0]!.exerciseId).toBe('push-up');
+
+    // Unknown ids and exercises already in the workout are ignored.
+    const unknown = buildProgram(4, 'beginner', 'gym', { [swapKey(base.id, first.slot)]: 'nope' })!.week[0]!;
+    expect(unknown.exercises[0]!.exerciseId).toBe(first.exerciseId);
+    const second = base.exercises[1]!;
+    const duplicate = buildProgram(4, 'beginner', 'gym', { [swapKey(base.id, second.slot)]: first.exerciseId })!
+      .week[0]!;
+    expect(duplicate.exercises.map((planned) => planned.exerciseId)).toEqual(
+      base.exercises.map((planned) => planned.exerciseId),
+    );
+  });
+
+  it('searches the whole catalog by name or muscle', () => {
+    const workout = buildProgram(4, 'beginner', 'gym')!.week[0]!;
+    expect(searchExercises(workout, 'squat').map((exercise) => exercise.id)).toContain('goblet-squat');
+    expect(searchExercises(workout, 'glutes').length).toBeGreaterThan(3);
+    expect(searchExercises(workout, 'bench press').map((exercise) => exercise.id)).not.toContain('bench-press');
   });
 
   it('estimates a sensible session length', () => {
@@ -192,6 +211,34 @@ describe('adviseLoad', () => {
   });
 });
 
+describe('lb gyms', () => {
+  const bench = getExercise('bench-press');
+  const range = { repsMin: 6, repsMax: 10 };
+
+  it('rounds starting weights to what lb plates can make', () => {
+    const start = displayWeight(startingLoad(bench, lifter, 'lb')!, 'lb');
+    expect(start % 5).toBe(0);
+    expect(start).toBe(70); // 31.5 kg is 69.4 lb
+  });
+
+  it('goes up in lb jumps and stores kg', () => {
+    const previous: ExerciseLog = { exerciseId: 'bench-press', date: '2026-11-10', weightKg: toKg(95, 'lb'), reps: [10, 10, 10] };
+    const advice = adviseLoad(bench, range, previous, lifter, 'lb');
+    expect(displayWeight(advice.weightKg!, 'lb')).toBe(100);
+    expect(advice.note).toContain('5 lb');
+  });
+
+  it('never suggests less than the 45 lb bar', () => {
+    const previous: ExerciseLog = { exerciseId: 'bench-press', date: '2026-11-10', weightKg: toKg(45, 'lb'), reps: [3, 3, 3] };
+    expect(displayWeight(adviseLoad(bench, range, previous, lifter, 'lb').weightKg!, 'lb')).toBe(45);
+  });
+
+  it('shows stored weights without conversion noise', () => {
+    expect(displayWeight(toKg(95, 'lb'), 'lb')).toBe(95);
+    expect(displayWeight(42.5, 'kg')).toBe(42.5);
+  });
+});
+
 describe('lastLog', () => {
   const logs: ExerciseLog[] = [
     { exerciseId: 'bench-press', date: '2026-11-03', weightKg: 37.5, reps: [10, 10, 10] },
@@ -211,13 +258,18 @@ describe('lastLog', () => {
 
 describe('platesPerSide', () => {
   it('loads the fewest plates per side', () => {
-    expect(platesPerSide(20)).toEqual({ perSide: [], leftoverKg: 0 });
-    expect(platesPerSide(60)).toEqual({ perSide: [20], leftoverKg: 0 });
-    expect(platesPerSide(42.5)).toEqual({ perSide: [10, 1.25], leftoverKg: 0 });
-    expect(platesPerSide(100)).toEqual({ perSide: [25, 15], leftoverKg: 0 });
+    expect(platesPerSide(20).perSide).toEqual([]);
+    expect(platesPerSide(60).perSide).toEqual([20]);
+    expect(platesPerSide(42.5).perSide).toEqual([10, 1.25]);
+    expect(platesPerSide(100)).toEqual({ bar: 20, perSide: [25, 15], leftover: 0 });
   });
 
   it('reports weight it cannot make', () => {
-    expect(platesPerSide(21)).toEqual({ perSide: [], leftoverKg: 1 });
+    expect(platesPerSide(21)).toMatchObject({ perSide: [], leftover: 1 });
+  });
+
+  it('uses a 45 lb bar and lb plates in a lb gym', () => {
+    expect(platesPerSide(135, 'lb')).toEqual({ bar: 45, perSide: [45], leftover: 0 });
+    expect(platesPerSide(95, 'lb').perSide).toEqual([25]);
   });
 });

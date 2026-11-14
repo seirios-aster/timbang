@@ -23,7 +23,37 @@
 .headerEnd {
   display: flex;
   align-items: center;
-  gap: var(--s3);
+  gap: var(--s2);
+}
+
+.headerEnd .date {
+  margin-right: var(--s1);
+}
+
+/* Round button to the target and settings page, matching the theme toggle beside it. */
+.targetLink {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  color: var(--ink);
+  transition:
+    background-color 140ms,
+    color 140ms;
+}
+
+.targetLink[aria-current='page'] {
+  background: var(--yellow);
+  color: var(--on-accent);
+}
+
+@media (hover: hover) {
+  .targetLink:hover:not([aria-current='page']) {
+    background: var(--ink);
+    color: var(--on-ink);
+  }
 }
 
 .wordmark,

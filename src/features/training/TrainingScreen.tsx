@@ -1,6 +1,5 @@
-import { useMemo, useState } from 'react';
-import { buildProgram, nextWorkout } from '@/domain/training/program';
-import type { Lifter } from '@/domain/training/types';
+import { useEffect, useState } from 'react';
+import { nextWorkout } from '@/domain/training/program';
 import { DAYS, todayIndex, todayIso } from '@/lib/date';
 import { useProfileStore } from '@/state/profileStore';
 import { useTrainingStore } from '@/state/trainingStore';
@@ -9,36 +8,53 @@ import { DayStrip } from '@/ui/DayStrip';
 import { Icon } from '@/ui/Icon';
 import { EQUIPMENT_LABEL } from './copy';
 import { ExerciseSheet } from './ExerciseSheet';
+import { SessionScreen } from './SessionScreen';
+import { SessionSummary } from './SessionSummary';
 import { SetupSheet } from './SetupSheet';
 import styles from './TrainingScreen.module.css';
+import { useProgram } from './useProgram';
 import { WorkoutBoard } from './WorkoutBoard';
 
 export function TrainingScreen() {
-  const profile = useProfileStore((state) => state.profile);
+  const days = useProfileStore((state) => state.profile?.trainingDays ?? 0);
   const equipment = useTrainingStore((state) => state.equipment);
-  const swaps = useTrainingStore((state) => state.swaps);
+  const unit = useTrainingStore((state) => state.unit);
   const logs = useTrainingStore((state) => state.logs);
+  const session = useTrainingStore((state) => state.session);
+  const summary = useTrainingStore((state) => state.summary);
+  const beginSession = useTrainingStore((state) => state.beginSession);
+  const discardSession = useTrainingStore((state) => state.discardSession);
+  const dismissSummary = useTrainingStore((state) => state.dismissSummary);
+  const { program, lifter } = useProgram();
 
   const [dayIndex, setDayIndex] = useState(todayIndex);
   const [openSlot, setOpenSlot] = useState<number | null>(null);
   const [setupOpen, setSetupOpen] = useState(false);
 
-  const days = profile?.trainingDays ?? 0;
-  const experience = profile?.experience ?? 'beginner';
-  const program = useMemo(
-    () => buildProgram(days, experience, equipment, swaps),
-    [days, experience, equipment, swaps],
-  );
+  // The workout a running session belongs to, if the program still has it.
+  const sessionWorkout = session ? (program?.week[session.dayIndex] ?? null) : null;
+  const sessionIsValid = session !== null && sessionWorkout?.id === session.workoutId;
 
-  if (!profile) return null;
+  // If the program changed under a running session (fewer days, say), the session no longer fits. Drop it.
+  useEffect(() => {
+    if (session && !sessionIsValid) discardSession();
+  }, [session, sessionIsValid, discardSession]);
 
-  const lifter: Lifter = {
-    sex: profile.sex,
-    experience: profile.experience,
-    weightKg: profile.weightKg,
-    heightCm: profile.heightCm,
-  };
+  if (!lifter) return null;
   const today = todayIso();
+
+  if (session && sessionIsValid && sessionWorkout) {
+    return (
+      <SessionScreen
+        workout={sessionWorkout}
+        session={session}
+        logs={logs}
+        lifter={lifter}
+        equipment={equipment}
+        unit={unit}
+      />
+    );
+  }
 
   if (!program) {
     return (
@@ -66,9 +82,11 @@ export function TrainingScreen() {
       <div className={styles.head}>
         <p className="eyebrow">Training</p>
         <button type="button" className={`eyebrow ${styles.settings}`} onClick={() => setSetupOpen(true)}>
-          {plannedDays} {plannedDays === 1 ? 'day' : 'days'} · {EQUIPMENT_LABEL[equipment]} · change
+          {plannedDays} {plannedDays === 1 ? 'day' : 'days'} · {EQUIPMENT_LABEL[equipment]} · {unit} · change
         </button>
       </div>
+
+      {summary && <SessionSummary summary={summary} onDismiss={dismissSummary} />}
 
       <header className={styles.split}>
         <h1 className={`display ${styles.splitName}`}>{program.split.name}</h1>
@@ -91,11 +109,13 @@ export function TrainingScreen() {
             workout={workout}
             logs={logs}
             lifter={lifter}
+            unit={unit}
             today={today}
             onSelect={setOpenSlot}
+            onStart={() => beginSession(workout, dayIndex)}
           />
           <p className={styles.tip}>
-            Tap a lift to see how to do it, log your sets, or swap it. Weights go up on their own as you log.
+            Tap a lift to see how it is done, log it by hand, or change it for one your gym has.
           </p>
           <ExerciseSheet
             workout={workout}
@@ -103,6 +123,7 @@ export function TrainingScreen() {
             logs={logs}
             lifter={lifter}
             equipment={equipment}
+            unit={unit}
             today={today}
             onClose={() => setOpenSlot(null)}
           />

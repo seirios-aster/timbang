@@ -1,0 +1,26 @@
+.guide {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+/* A small stage for the figure, ruled like graph paper so the movement has something to move against. */
+.stage {
+  padding: var(--s2) var(--s4) 0;
+  border: 2px solid var(--ink);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(var(--rule) 1px, transparent 1px) 0 0 / 100% 1.25rem,
+    linear-gradient(90deg, var(--rule) 1px, transparent 1px) 0 0 / 1.25rem 100%,
+    var(--ground);
+}
+
+.video {
+  align-self: flex-start;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  text-underline-offset: 0.25em;
+}

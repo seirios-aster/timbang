@@ -90,3 +90,28 @@
   font-size: var(--text-sm);
   color: var(--ink-2);
 }
+
+/* Session result slip */
+
+.summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s3);
+  padding: var(--s4);
+  border: 2px dashed var(--ink);
+  border-radius: var(--radius);
+}
+
+.summaryHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s4);
+  width: 100%;
+}
+
+.summaryTitle {
+  margin-top: var(--s1);
+  font-size: var(--display-md);
+}

@@ -2,6 +2,7 @@ import { Onboarding } from '@/features/onboarding/Onboarding';
 import { MealsScreen } from '@/features/meals/MealsScreen';
 import { ProgressScreen } from '@/features/progress/ProgressScreen';
 import { TargetScreen } from '@/features/target/TargetScreen';
+import { TodayScreen } from '@/features/today/TodayScreen';
 import { TrainingScreen } from '@/features/training/TrainingScreen';
 import { useProfileStore } from '@/state/profileStore';
 import { AppShell } from './AppShell';
@@ -18,6 +19,7 @@ export function App() {
 
   return (
     <AppShell route={route}>
+      {route === 'today' && <TodayScreen go={go} />}
       {route === 'target' && <TargetScreen go={go} />}
       {route === 'meals' && <MealsScreen go={go} />}
       {route === 'training' && <TrainingScreen />}

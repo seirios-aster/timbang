@@ -121,6 +121,7 @@
   --ink-2: var(--paper-ink-2);
   --ink-3: #8a90ad;
   --on-ink: var(--paper);
+  --ground: rgba(16, 27, 77, 0.07);
   --rule: rgba(16, 27, 77, 0.16);
   --rule-strong: rgba(16, 27, 77, 0.42);
   --red: #d6362b;
@@ -135,6 +136,7 @@
   --ink-2: var(--on-board-2);
   --ink-3: #8b94bd;
   --on-ink: var(--board);
+  --ground: rgba(0, 0, 0, 0.22);
   --surface: rgba(255, 255, 255, 0.07);
   --rule: rgba(245, 246, 250, 0.16);
   --rule-strong: rgba(245, 246, 250, 0.4);

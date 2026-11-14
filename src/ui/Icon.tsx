@@ -14,6 +14,7 @@ export type IconName =
   | 'check'
   | 'scale'
   | 'trash'
+  | 'today'
   | 'dumbbell'
   | 'sun'
   | 'moon';
@@ -62,6 +63,13 @@ const PATHS: Record<IconName, ReactNode> = {
       <rect x="4" y="4" width="16" height="16" rx="2" />
       <path d="M8 10a4 4 0 0 1 8 0" />
       <path d="M12 10l1.5-2" />
+    </>
+  ),
+  today: (
+    <>
+      <rect x="4" y="5" width="16" height="15" />
+      <path d="M4 10h16M8 3v4M16 3v4" />
+      <path d="M11 14h2v2h-2z" />
     </>
   ),
   dumbbell: (

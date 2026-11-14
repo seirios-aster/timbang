@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { getExercise } from '@/domain/training/exercises';
 import { adviseLoad, lastLog } from '@/domain/training/loads';
-import { alternatives, swapKey } from '@/domain/training/program';
+import { swapKey } from '@/domain/training/program';
 import type { Equipment, Exercise, ExerciseLog, Lifter, PlannedExercise, Workout } from '@/domain/training/types';
+import { displayWeight, toKg, UNIT_SYSTEMS, type WeightUnit } from '@/domain/training/units';
 import { fmtShortDate } from '@/lib/date';
 import { fmtRest } from '@/lib/format';
 import { useTrainingStore } from '@/state/trainingStore';
@@ -12,8 +13,11 @@ import { NumberField } from '@/ui/NumberField';
 import { Sheet } from '@/ui/Sheet';
 import { Stamp } from '@/ui/Stamp';
 import { BASIS_STAMP, fmtDose, fmtLoad, loadUnit } from './copy';
+import { ExerciseGuide } from './ExerciseGuide';
+import { ExercisePicker } from './ExercisePicker';
 import styles from './ExerciseSheet.module.css';
 import { PlateStack } from './PlateStack';
+import { SetCounters } from './SetCounters';
 
 interface ExerciseSheetProps {
   workout: Workout;
@@ -22,12 +26,10 @@ interface ExerciseSheetProps {
   logs: ExerciseLog[];
   lifter: Lifter;
   equipment: Equipment;
+  unit: WeightUnit;
   today: string;
   onClose: () => void;
 }
-
-/** Steps for typing a weight. Finer than the suggested jumps, since gym equipment varies. */
-const INPUT_STEP = { barbell: 2.5, dumbbell: 0.5, machine: 2.5, bodyweight: 1 } as const;
 
 /** Reps on each set to start the log from: today's entry, else last session's, else the middle of the range. */
 function startingReps(planned: PlannedExercise, done?: ExerciseLog, previous?: ExerciseLog): number[] {
@@ -42,84 +44,54 @@ interface LogFormProps {
   suggestedKg: number | null;
   done?: ExerciseLog;
   previous?: ExerciseLog;
+  unit: WeightUnit;
   today: string;
   onSaved: () => void;
 }
 
-function LogForm({ exercise, planned, suggestedKg, done, previous, today, onSaved }: LogFormProps) {
+function LogForm({ exercise, planned, suggestedKg, done, previous, unit, today, onSaved }: LogFormProps) {
   const log = useTrainingStore((state) => state.log);
   const weighted = exercise.load !== 'bodyweight';
-  const [weightKg, setWeightKg] = useState(done?.weightKg ?? suggestedKg ?? 0);
+  // The field works in the gym's unit. It is converted to kg when saved.
+  const [weight, setWeight] = useState(() => displayWeight(done?.weightKg ?? suggestedKg ?? 0, unit));
   const [reps, setReps] = useState(() => startingReps(planned, done, previous));
-
-  const unit = exercise.timed ? 'sec' : 'reps';
-  const step = exercise.timed ? 5 : 1;
-  const changeSet = (index: number, delta: number) =>
-    setReps((current) => current.map((value, i) => (i === index ? Math.max(0, value + delta) : value)));
 
   return (
     <form
       className={styles.form}
       onSubmit={(event) => {
         event.preventDefault();
-        log({ exerciseId: exercise.id, date: today, weightKg: weighted ? weightKg : null, reps });
+        log({ exerciseId: exercise.id, date: today, weightKg: weighted ? toKg(weight, unit) : null, reps });
         onSaved();
       }}
     >
       <h3 className={`display ${styles.heading}`}>Log today</h3>
 
-      {weighted && (
+      {exercise.load !== 'bodyweight' && (
         <>
           <NumberField
             id="log-weight"
-            label={`Weight used (${loadUnit(exercise)})`}
-            unit="kg"
+            label={`Weight used (${loadUnit(exercise, unit)})`}
+            unit={unit}
             size="md"
-            step={INPUT_STEP[exercise.load]}
+            step={UNIT_SYSTEMS[unit].inputStep[exercise.load]}
             digits={1}
             min={0}
-            max={500}
-            value={weightKg}
-            onChange={setWeightKg}
+            max={1200}
+            value={weight}
+            onChange={setWeight}
           />
-          {exercise.load === 'barbell' && <PlateStack totalKg={weightKg} />}
+          {exercise.load === 'barbell' && <PlateStack total={weight} unit={unit} />}
         </>
       )}
 
-      <fieldset className={styles.sets}>
-        <legend className="eyebrow">{exercise.timed ? 'Seconds held on each set' : 'Reps on each set'}</legend>
-        <div className={styles.setGrid}>
-          {reps.map((value, index) => (
-            <div key={index} className={styles.set}>
-              <button
-                type="button"
-                className={styles.setStep}
-                onClick={() => changeSet(index, step)}
-                aria-label={`Set ${index + 1}: more ${unit}`}
-              >
-                <Icon name="plus" size={20} />
-              </button>
-              <p className={styles.setValue} aria-live="polite">
-                <span className="visually-hidden">Set {index + 1}: </span>
-                {value}
-                <span className="visually-hidden"> {unit}</span>
-              </p>
-              <button
-                type="button"
-                className={styles.setStep}
-                onClick={() => changeSet(index, -step)}
-                disabled={value <= 0}
-                aria-label={`Set ${index + 1}: fewer ${unit}`}
-              >
-                <Icon name="minus" size={20} />
-              </button>
-              <span className={`mono ${styles.setLabel}`} aria-hidden="true">
-                Set {index + 1}
-              </span>
-            </div>
-          ))}
-        </div>
-      </fieldset>
+      <SetCounters
+        legend={exercise.timed ? 'Seconds held on each set' : 'Reps on each set'}
+        unit={exercise.timed ? 'sec' : 'reps'}
+        step={exercise.timed ? 5 : 1}
+        values={reps}
+        onChange={setReps}
+      />
 
       <Button type="submit" size="lg" block>
         {done ? 'Update log' : 'Save'} <Icon name="check" />
@@ -129,7 +101,7 @@ function LogForm({ exercise, planned, suggestedKg, done, previous, today, onSave
 }
 
 /** Opens from a line on the workout board: how to do the lift, what to load, a log, and swaps. */
-export function ExerciseSheet({ workout, slot, logs, lifter, equipment, today, onClose }: ExerciseSheetProps) {
+export function ExerciseSheet({ workout, slot, logs, lifter, equipment, unit, today, onClose }: ExerciseSheetProps) {
   const swap = useTrainingStore((state) => state.swap);
   const planned = slot === null ? undefined : workout.exercises.find((candidate) => candidate.slot === slot);
 
@@ -144,14 +116,13 @@ export function ExerciseSheet({ workout, slot, logs, lifter, equipment, today, o
   const exercise = getExercise(planned.exerciseId);
   const previous = lastLog(logs, exercise.id, today);
   const done = logs.find((log) => log.exerciseId === exercise.id && log.date === today);
-  const advice = adviseLoad(exercise, planned, previous, lifter);
+  const advice = adviseLoad(exercise, planned, previous, lifter, unit);
   const stamp = BASIS_STAMP[advice.basis];
-  const options = alternatives(workout, planned, equipment);
 
   return (
     <Sheet open onClose={onClose} eyebrow={exercise.muscles} title={exercise.name}>
       <div className={styles.body}>
-        <p>{exercise.cue}</p>
+        <ExerciseGuide key={exercise.id} exercise={exercise} />
 
         <dl className={styles.facts}>
           <div>
@@ -166,51 +137,45 @@ export function ExerciseSheet({ workout, slot, logs, lifter, equipment, today, o
 
         <section className={styles.advice} aria-label="What to load">
           <div className={styles.adviceHead}>
-            <p className={styles.adviceLoad}>{fmtLoad(advice.weightKg, exercise)}</p>
+            <p className={styles.adviceLoad}>{fmtLoad(advice.weightKg, exercise, unit)}</p>
             <Stamp tone={stamp.tone}>{stamp.label}</Stamp>
           </div>
           <p className={styles.adviceNote}>{advice.note}</p>
           {previous && (
             <p className={`mono ${styles.last}`}>
-              Last time, {fmtShortDate(previous.date)}: {fmtLoad(previous.weightKg, exercise)} ×{' '}
+              Last time, {fmtShortDate(previous.date)}: {fmtLoad(previous.weightKg, exercise, unit)} ×{' '}
               {previous.reps.join(', ')}
             </p>
           )}
         </section>
 
         <LogForm
-          key={exercise.id}
+          key={`${exercise.id}-${unit}`}
           exercise={exercise}
           planned={planned}
           suggestedKg={advice.weightKg}
           done={done}
           previous={previous}
+          unit={unit}
           today={today}
           onSaved={onClose}
         />
 
-        {options.length > 0 && (
-          <section className={styles.swaps} aria-labelledby="exercise-swap-heading">
-            <h3 id="exercise-swap-heading" className={`display ${styles.heading}`}>
-              Palitan
-            </h3>
-            <p className={styles.swapLead}>Swap for another lift that trains the same thing.</p>
-            <ul className={styles.list}>
-              {options.map((option) => (
-                <li key={option.id}>
-                  <button
-                    type="button"
-                    className={styles.option}
-                    onClick={() => swap(swapKey(workout.id, planned.slot), option.id)}
-                  >
-                    <span className={styles.optionName}>{option.name}</span>
-                    <span className={styles.optionDetail}>{option.muscles}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
+        <section className={styles.swaps} aria-labelledby="exercise-swap-heading">
+          <h3 id="exercise-swap-heading" className={`display ${styles.heading}`}>
+            Change this lift
+          </h3>
+          <p className={styles.swapLead}>
+            No machine for it, or it is taken? Pick another. Your choice stays for next week too.
+          </p>
+          <ExercisePicker
+            key={exercise.id}
+            workout={workout}
+            planned={planned}
+            equipment={equipment}
+            onPick={(exerciseId) => swap(swapKey(workout.id, planned.slot), exerciseId)}
+          />
+        </section>
       </div>
     </Sheet>
   );

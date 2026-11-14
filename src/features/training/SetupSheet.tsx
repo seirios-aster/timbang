@@ -5,7 +5,7 @@ import { Button } from '@/ui/Button';
 import { ChoiceList } from '@/ui/ChoiceList';
 import { NumberField } from '@/ui/NumberField';
 import { Sheet } from '@/ui/Sheet';
-import { EQUIPMENT_CHOICES } from './copy';
+import { EQUIPMENT_CHOICES, UNIT_CHOICES } from './copy';
 import styles from './TrainingScreen.module.css';
 
 interface SetupSheetProps {
@@ -13,12 +13,14 @@ interface SetupSheetProps {
   onClose: () => void;
 }
 
-/** The two things that shape the program: how many days, and what there is to train with. */
+/** What shapes the program: how many days, what there is to train with, and the gym's unit. */
 export function SetupSheet({ open, onClose }: SetupSheetProps) {
   const days = useProfileStore((state) => state.profile?.trainingDays ?? 0);
   const updateProfile = useProfileStore((state) => state.updateProfile);
   const equipment = useTrainingStore((state) => state.equipment);
   const setEquipment = useTrainingStore((state) => state.setEquipment);
+  const unit = useTrainingStore((state) => state.unit);
+  const setUnit = useTrainingStore((state) => state.setUnit);
 
   return (
     <Sheet open={open} onClose={onClose} eyebrow="Training" title="Your setup">
@@ -45,6 +47,20 @@ export function SetupSheet({ open, onClose }: SetupSheetProps) {
           onChange={setEquipment}
           choices={EQUIPMENT_CHOICES}
         />
+        <div>
+          <ChoiceList
+            name="weight-unit"
+            legend="Your gym's plates are in"
+            layout="cells"
+            value={unit}
+            onChange={setUnit}
+            choices={UNIT_CHOICES}
+          />
+          <p className={styles.hint}>
+            Check the number stamped on a plate. Suggested weights, jumps and the plate diagram follow this. Your
+            history is kept either way.
+          </p>
+        </div>
         <Button size="lg" block onClick={onClose}>
           Done
         </Button>

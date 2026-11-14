@@ -20,11 +20,11 @@ export function fmtShortDate(iso: string): string {
 }
 
 export const DAYS = [
-  { short: 'Lun', long: 'Lunes' },
-  { short: 'Mar', long: 'Martes' },
-  { short: 'Miy', long: 'Miyerkules' },
-  { short: 'Huw', long: 'Huwebes' },
-  { short: 'Biy', long: 'Biyernes' },
-  { short: 'Sab', long: 'Sabado' },
-  { short: 'Lin', long: 'Linggo' },
+  { short: 'Mon', long: 'Monday' },
+  { short: 'Tue', long: 'Tuesday' },
+  { short: 'Wed', long: 'Wednesday' },
+  { short: 'Thu', long: 'Thursday' },
+  { short: 'Fri', long: 'Friday' },
+  { short: 'Sat', long: 'Saturday' },
+  { short: 'Sun', long: 'Sunday' },
 ] as const;

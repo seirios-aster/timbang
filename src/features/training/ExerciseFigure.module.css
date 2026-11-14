@@ -1,0 +1,62 @@
+.figure {
+  display: block;
+  width: 100%;
+  max-width: 15rem;
+  height: auto;
+  margin-inline: auto;
+  overflow: visible;
+}
+
+.floor {
+  stroke: var(--ink-3);
+  stroke-width: 1.5;
+  stroke-dasharray: 2 4;
+}
+
+.fixture {
+  fill: none;
+  stroke: var(--ink-3);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.body polyline,
+.ghost polyline {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.body .cable {
+  stroke: var(--ink-2);
+  stroke-width: 1.5;
+}
+
+.head {
+  fill: var(--ink);
+}
+
+.ghost {
+  opacity: 0.16;
+}
+
+.ghost circle {
+  fill: var(--ink);
+}
+
+/* The weight is a plate seen end-on, in plate yellow. */
+.weight {
+  fill: var(--yellow);
+  stroke: var(--ink);
+  stroke-width: 2.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The figure rests on the end pose, with the start pose still visible behind it. */
+  .ghost {
+    opacity: 0.3;
+  }
+}

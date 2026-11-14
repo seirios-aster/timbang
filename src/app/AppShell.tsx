@@ -7,7 +7,7 @@ import styles from './AppShell.module.css';
 import type { Route } from './router';
 
 const TABS: { route: Route; label: string; icon: IconName }[] = [
-  { route: 'target', label: 'Target', icon: 'dial' },
+  { route: 'today', label: 'Today', icon: 'today' },
   { route: 'meals', label: 'Meals', icon: 'resibo' },
   { route: 'training', label: 'Training', icon: 'dumbbell' },
   { route: 'progress', label: 'Progress', icon: 'trend' },
@@ -25,7 +25,7 @@ export function AppShell({ route, children }: AppShellProps) {
   return (
     <div className={styles.shell}>
       <nav className={styles.nav} aria-label="Main">
-        <a className={styles.brand} href="#target">
+        <a className={styles.brand} href="#today">
           {BRAND.name}
         </a>
         <ul className={styles.tabs}>
@@ -47,11 +47,20 @@ export function AppShell({ route, children }: AppShellProps) {
 
       <div className={styles.column}>
         <header className={styles.header}>
-          <a className={styles.wordmark} href="#target">
+          <a className={styles.wordmark} href="#today">
             {BRAND.name}
           </a>
           <div className={styles.headerEnd}>
             <span className={`mono ${styles.date}`}>{today}</span>
+            <a
+              className={styles.targetLink}
+              href="#target"
+              aria-label="Your target and settings"
+              aria-current={route === 'target' ? 'page' : undefined}
+              title="Target and settings"
+            >
+              <Icon name="dial" size={20} />
+            </a>
             <ThemeToggle />
           </div>
         </header>

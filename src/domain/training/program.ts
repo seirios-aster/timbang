@@ -1,5 +1,5 @@
 import type { Experience } from '../nutrition/types';
-import { exercisesFor, findExercise } from './exercises';
+import { EXERCISES, exercisesFor, findExercise } from './exercises';
 import { splitForDays, TEMPLATES } from './splits';
 import type {
   Equipment,
@@ -38,10 +38,11 @@ export function swapKey(workoutId: string, slot: number): string {
 }
 
 function chooseExercise(slot: Slot, equipment: Equipment, taken: Set<string>, swapped?: string): Exercise | undefined {
-  const options = exercisesFor(slot.pattern, equipment).filter((exercise) => !taken.has(exercise.id));
+  // The person's own choice wins, whatever it trains and whatever it needs. They know their gym.
+  const chosen = swapped ? findExercise(swapped) : undefined;
+  if (chosen && !taken.has(chosen.id)) return chosen;
 
-  const chosen = swapped ? options.find((exercise) => exercise.id === swapped) : undefined;
-  if (chosen) return chosen;
+  const options = exercisesFor(slot.pattern, equipment).filter((exercise) => !taken.has(exercise.id));
 
   for (const id of slot.prefer ?? []) {
     const preferred = options.find((exercise) => exercise.id === id);
@@ -103,10 +104,24 @@ export function buildProgram(
   return { split, week };
 }
 
-/** Other exercises that could fill a slot: same movement, allowed by the equipment, not already in the workout. */
+/** Suggested swaps for a slot: same movement, allowed by the equipment, not already in the workout. */
 export function alternatives(workout: Workout, planned: PlannedExercise, equipment: Equipment): Exercise[] {
   const inWorkout = new Set(workout.exercises.map((exercise) => exercise.exerciseId));
   return exercisesFor(planned.pattern, equipment).filter((exercise) => !inWorkout.has(exercise.id));
+}
+
+/**
+ * Every other exercise the person could put in a slot, for when the suggestions do not fit
+ * their gym. Matches the search text against the name and the muscles worked.
+ */
+export function searchExercises(workout: Workout, query: string): Exercise[] {
+  const inWorkout = new Set(workout.exercises.map((exercise) => exercise.exerciseId));
+  const words = query.toLowerCase().split(/\s+/).filter(Boolean);
+  return EXERCISES.filter((exercise) => {
+    if (inWorkout.has(exercise.id)) return false;
+    const text = `${exercise.name} ${exercise.muscles}`.toLowerCase();
+    return words.every((word) => text.includes(word));
+  });
 }
 
 /** Rough length of a workout in minutes, rounded to five, including rest between sets. */
@@ -125,9 +140,4 @@ export function nextWorkout(program: Program, dayIndex: number): { workout: Work
     if (workout) return { workout, inDays: offset };
   }
   return null;
-}
-
-/** True when every stored swap still points at a real exercise. Used to drop stale entries. */
-export function isKnownExercise(id: string): boolean {
-  return findExercise(id) !== undefined;
 }

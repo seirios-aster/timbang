@@ -32,7 +32,7 @@ export function Resibo({ day, totals, targets, onSelectItem }: ResiboProps) {
       <div className={`on-paper ${styles.paper}`}>
         <header className={styles.head}>
           <p className={styles.store}>{BRAND.name}</p>
-          <p className={styles.sub}>Plano ng pagkain · {DAYS[day.dayIndex]?.long}</p>
+          <p className={styles.sub}>Meal plan · {DAYS[day.dayIndex]?.long}</p>
           <p className={styles.serial}>
             N<sup>o</sup> {serial}
           </p>
