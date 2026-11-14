@@ -1,0 +1,116 @@
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.legend {
+  margin-bottom: var(--s2);
+}
+
+.rows,
+.cells {
+  display: grid;
+  border: var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.cells {
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+}
+
+.option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  padding: var(--s3) var(--s4);
+  cursor: pointer;
+  transition:
+    background-color 140ms,
+    color 140ms;
+}
+
+.rows .option + .option {
+  border-top: var(--border);
+}
+
+.cells .option {
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--s3) var(--s2);
+  text-align: center;
+}
+
+.cells .option + .option {
+  border-left: var(--border);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: var(--display-sm);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.cells .title {
+  font-size: 1.25rem;
+}
+
+.detail {
+  font-size: var(--text-sm);
+  line-height: 1.35;
+  color: var(--ink-2);
+}
+
+/* The mark is a small weight plate that fills in when chosen. */
+.mark {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: var(--border);
+  border-radius: 50%;
+}
+
+.cells .mark {
+  display: none;
+}
+
+.option:has(input:checked) {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+
+.option:has(input:checked) .detail {
+  color: var(--on-ink);
+  opacity: 0.78;
+}
+
+.option:has(input:checked) .mark {
+  border-color: var(--yellow);
+  background: radial-gradient(circle, var(--ink) 0 22%, var(--yellow) 24%);
+}
+
+.option:has(input:focus-visible) {
+  outline: 3px solid var(--blue);
+  outline-offset: -3px;
+}
+
+@media (hover: hover) {
+  .option:not(:has(input:checked)):hover {
+    background: var(--ground);
+  }
+}

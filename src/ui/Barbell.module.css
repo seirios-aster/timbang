@@ -1,0 +1,114 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+}
+
+/* The sleeve is the line running through the middle. Plates sit on top of it. */
+.barbell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 4.5rem;
+  padding: 0 1.75rem 0 1.25rem;
+}
+
+.barbell::before {
+  content: '';
+  position: absolute;
+  inset: 50% 0 auto;
+  height: 0.625rem;
+  transform: translateY(-50%);
+  border: var(--border);
+  border-radius: var(--radius);
+  background: var(--ink-3);
+}
+
+.collar {
+  position: relative;
+  flex: none;
+  width: 0.875rem;
+  height: 2.25rem;
+  border-radius: var(--radius);
+  background: var(--ink);
+}
+
+.plate {
+  position: relative;
+  flex-basis: 0;
+  min-width: 0.5rem;
+  height: 100%;
+  border: var(--border);
+  border-radius: 5px;
+  /* The darker band is the plate's steel hub. */
+  box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.28);
+  transition: flex-grow 500ms var(--ease-out);
+}
+
+.protein {
+  background: var(--protein);
+}
+
+.carbs {
+  background: var(--carbs);
+}
+
+.fat {
+  background: var(--fat);
+}
+
+.legend {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s3);
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.name {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.chip {
+  flex: none;
+  width: 0.5rem;
+  height: 1rem;
+  border: 1.5px solid var(--ink);
+  border-radius: 2px;
+}
+
+.grams {
+  font-family: var(--font-display);
+  font-size: var(--display-md);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.g {
+  margin-left: 0.15em;
+  font-size: 0.5em;
+  font-weight: 700;
+  color: var(--ink-2);
+}
+
+.share {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}

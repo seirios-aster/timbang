@@ -1,0 +1,62 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s5);
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s3);
+  flex-wrap: wrap;
+}
+
+.settings {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+.banner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s3);
+  padding: var(--s3) var(--s4);
+  border: 2px dashed var(--ink);
+  border-radius: var(--radius);
+  background: var(--paper);
+  font-size: var(--text-sm);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+
+.tip {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+  text-align: center;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+  padding-block: var(--s6);
+}
+
+.emptyTitle {
+  font-size: var(--display-lg);
+  font-weight: 900;
+}
+
+.emptyText {
+  max-width: 40ch;
+  color: var(--ink-2);
+}

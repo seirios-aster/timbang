@@ -1,0 +1,100 @@
+.dial {
+  display: block;
+  width: 100%;
+  max-width: 21rem;
+  height: auto;
+  margin-inline: auto;
+}
+
+.hook {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 4;
+}
+
+.neck {
+  fill: var(--ink);
+}
+
+.face {
+  fill: var(--surface);
+  stroke: var(--ink);
+  stroke-width: 4;
+}
+
+.rim {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2;
+}
+
+.band {
+  fill: none;
+  stroke: var(--yellow);
+  stroke-width: 10;
+  transition: stroke-dasharray 700ms var(--ease-out);
+}
+
+.major {
+  stroke: var(--ink);
+  stroke-width: 3;
+}
+
+.minor {
+  stroke: var(--ink-3);
+  stroke-width: 1.5;
+}
+
+.tickLabel {
+  fill: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+/* The ends of the scale are named, not numbered. */
+.zone {
+  fill: var(--ink);
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.needle {
+  fill: var(--red);
+  transform-origin: 160px 178px;
+  transition: transform 800ms var(--ease-needle);
+}
+
+.hub {
+  fill: var(--ink);
+}
+
+.pin {
+  fill: var(--surface);
+}
+
+.number {
+  fill: var(--ink);
+  font-family: var(--font-display);
+  font-size: 68px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  text-anchor: middle;
+}
+
+.caption {
+  fill: var(--ink-2);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-anchor: middle;
+  text-transform: uppercase;
+}

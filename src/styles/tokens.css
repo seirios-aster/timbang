@@ -1,0 +1,61 @@
+/*
+ * Layout concept: a carbon-copy resibo pad on a gym floor. Navy carbon ink on cool
+ * paper, weight-plate colors for the three macros, and one round timbangan dial as the hero.
+ */
+:root {
+  /* Color */
+  --ground: #e4e8f0;
+  --surface: #f5f6fa;
+  --paper: #fff6cc;
+  --ink: #101b4d;
+  --ink-2: #47517f;
+  --ink-3: #7e86a8;
+  --on-ink: #f5f6fa;
+  --rule: rgba(16, 27, 77, 0.16);
+  --rule-strong: rgba(16, 27, 77, 0.42);
+
+  /* Weight-plate colors. Red, yellow and blue double as protein, carbs and fat. */
+  --red: #d6362b;
+  --yellow: #f3b61f;
+  --blue: #2b55d4;
+  --green: #17835a;
+  --protein: var(--red);
+  --carbs: var(--yellow);
+  --fat: var(--blue);
+
+  /* Type */
+  --font-display: 'Big Shoulders Variable', 'Arial Narrow', Impact, sans-serif;
+  --font-body: 'Schibsted Grotesk Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'DM Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.25rem;
+  --display-sm: 1.5rem;
+  --display-md: 2.25rem;
+  --display-lg: 3.5rem;
+  --display-xl: 5.5rem;
+
+  /* Space */
+  --s1: 0.25rem;
+  --s2: 0.5rem;
+  --s3: 0.75rem;
+  --s4: 1rem;
+  --s5: 1.5rem;
+  --s6: 2rem;
+  --s7: 3rem;
+  --s8: 4rem;
+
+  --radius: 3px;
+  --border: 2px solid var(--ink);
+  --gutter-left: max(16px, env(safe-area-inset-left, 0px));
+  --gutter-right: max(16px, env(safe-area-inset-right, 0px));
+  --tabbar-height: 4rem;
+  --content-width: 34rem;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-needle: cubic-bezier(0.34, 1.4, 0.64, 1);
+
+  color-scheme: light;
+}
