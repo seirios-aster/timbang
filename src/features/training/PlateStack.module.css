@@ -1,0 +1,74 @@
+.figure {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  margin: 0;
+}
+
+/* One end of the barbell, seen from the side: shaft, collar, plates, then the bare sleeve. */
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 4.5rem;
+}
+
+.shaft {
+  flex: 1;
+  height: 0.5rem;
+  border: 2px solid var(--ink);
+  border-right: 0;
+  border-radius: var(--radius) 0 0 var(--radius);
+  background: var(--ink-3);
+}
+
+.collar {
+  width: 0.625rem;
+  height: 1.75rem;
+  border-radius: 2px;
+  background: var(--ink);
+}
+
+.plate {
+  flex: none;
+  border: 2px solid var(--ink);
+  border-radius: 3px;
+}
+
+.sleeve {
+  width: 2.5rem;
+  height: 0.75rem;
+  border: 2px solid var(--ink);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--ink-3);
+}
+
+.red {
+  background: var(--red);
+}
+
+.blue {
+  background: var(--blue);
+}
+
+.yellow {
+  background: var(--yellow);
+}
+
+.green {
+  background: var(--green);
+}
+
+.light {
+  background: var(--surface);
+}
+
+.steel {
+  background: var(--ink-3);
+}
+
+.caption {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}

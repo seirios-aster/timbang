@@ -24,6 +24,9 @@ const PROTEIN_REFERENCE_BMI = 27.5;
 
 const KCAL_PER_KG_BODY_WEIGHT = 7700;
 
+/** A common rule of thumb for daily water. Needs rise with training, sweat and heat. */
+const WATER_ML_PER_KG = 35;
+
 /**
  * Newer lifters build muscle faster, so they can use a bigger surplus.
  * Cutting defaults to the middle pace for everyone.
@@ -79,6 +82,7 @@ export function computeTargets(profile: Profile): Targets {
     calories,
     deltaKcal,
     weeklyChangeKg: (deltaKcal * 7) / KCAL_PER_KG_BODY_WEIGHT,
+    waterL: roundTo((profile.weightKg * WATER_ML_PER_KG) / 1000, 0.1),
     proteinG,
     carbsG,
     fatG,

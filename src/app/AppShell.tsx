@@ -2,12 +2,14 @@ import type { ReactNode } from 'react';
 import { BRAND } from '@/config/brand';
 import { DAYS, fmtShortDate, todayIndex, todayIso } from '@/lib/date';
 import { Icon, type IconName } from '@/ui/Icon';
+import { ThemeToggle } from '@/ui/ThemeToggle';
 import styles from './AppShell.module.css';
 import type { Route } from './router';
 
 const TABS: { route: Route; label: string; icon: IconName }[] = [
   { route: 'target', label: 'Target', icon: 'dial' },
   { route: 'meals', label: 'Meals', icon: 'resibo' },
+  { route: 'training', label: 'Training', icon: 'dumbbell' },
   { route: 'progress', label: 'Progress', icon: 'trend' },
 ];
 
@@ -48,7 +50,10 @@ export function AppShell({ route, children }: AppShellProps) {
           <a className={styles.wordmark} href="#target">
             {BRAND.name}
           </a>
-          <span className={`mono ${styles.date}`}>{today}</span>
+          <div className={styles.headerEnd}>
+            <span className={`mono ${styles.date}`}>{today}</span>
+            <ThemeToggle />
+          </div>
         </header>
         <main className={styles.main}>{children}</main>
       </div>

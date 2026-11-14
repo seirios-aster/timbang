@@ -8,8 +8,8 @@ import { usePlanStore } from '@/state/planStore';
 import { useProfileStore } from '@/state/profileStore';
 import { useTargets } from '@/state/useTargets';
 import { Button } from '@/ui/Button';
+import { DayStrip } from '@/ui/DayStrip';
 import { Icon } from '@/ui/Icon';
-import { DayStrip } from './DayStrip';
 import { DaySummary } from './DaySummary';
 import { FoodSheet, type Selection } from './FoodSheet';
 import styles from './MealsScreen.module.css';
@@ -45,7 +45,7 @@ export function MealsScreen({ go }: MealsScreenProps) {
         <h1 className={`display ${styles.emptyTitle}`}>Nothing printed yet</h1>
         <p className={styles.emptyText}>
           Your plan will show seven days of meals built to hit your calories and macros, with each food's portion,
-          macros and estimated price.
+          weight and macros.
         </p>
         <Button size="lg" block onClick={() => build(targets, prefs)}>
           Print my meal plan <Icon name="arrowRight" />
@@ -71,7 +71,7 @@ export function MealsScreen({ go }: MealsScreenProps) {
       </div>
 
       {isStale && (
-        <div className={styles.banner} role="status">
+        <div className={`on-paper ${styles.banner}`} role="status">
           <p>Your target or food settings changed after this plan was printed.</p>
           <Button onClick={() => build(targets, prefs)}>Reprint the week</Button>
         </div>

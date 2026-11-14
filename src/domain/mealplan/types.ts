@@ -48,9 +48,8 @@ export interface Macros {
   fat: number;
 }
 
-export interface Totals extends Macros {
-  pricePhp: number;
-}
+/** Summed macros for a food, a meal or a day. */
+export type Totals = Macros;
 
 export const DEFAULT_PREFS: PlanPrefs = {
   budget: 2,

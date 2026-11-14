@@ -5,7 +5,7 @@
   margin: auto auto 0;
   padding: 0;
   border: 0;
-  border-top: var(--border);
+  border-top: 2px solid var(--ink);
   background: var(--surface);
   color: var(--ink);
   overflow: hidden;
@@ -17,7 +17,7 @@
 }
 
 .sheet::backdrop {
-  background: rgba(16, 27, 77, 0.55);
+  background: var(--backdrop);
   animation: fade 200ms ease-out;
 }
 
@@ -34,7 +34,7 @@
   justify-content: space-between;
   gap: var(--s4);
   padding: var(--s4) var(--gutter-right) var(--s3) var(--gutter-left);
-  border-bottom: var(--border);
+  border-bottom: 2px solid var(--ink);
 }
 
 .heading {
@@ -54,7 +54,7 @@
   place-items: center;
   width: 2.75rem;
   height: 2.75rem;
-  border: var(--border);
+  border: 2px solid var(--ink);
   border-radius: var(--radius);
   background: transparent;
 }
@@ -68,7 +68,7 @@
 @media (min-width: 40rem) {
   .sheet {
     margin: auto;
-    border: var(--border);
+    border: 2px solid var(--ink);
     border-radius: var(--radius);
   }
 }

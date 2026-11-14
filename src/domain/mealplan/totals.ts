@@ -2,7 +2,7 @@ import { getFood } from '../foods/catalog';
 import type { Food } from '../foods/types';
 import type { DayPlan, PlanItem, PlanMeal, Totals } from './types';
 
-const ZERO: Totals = { kcal: 0, protein: 0, carbs: 0, fat: 0, pricePhp: 0 };
+const ZERO: Totals = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
 
 export function foodTotals(food: Food, portions: number): Totals {
   return {
@@ -10,7 +10,6 @@ export function foodTotals(food: Food, portions: number): Totals {
     protein: food.protein * portions,
     carbs: food.carbs * portions,
     fat: food.fat * portions,
-    pricePhp: food.pricePhp * portions,
   };
 }
 
@@ -24,7 +23,6 @@ export function addTotals(a: Totals, b: Totals): Totals {
     protein: a.protein + b.protein,
     carbs: a.carbs + b.carbs,
     fat: a.fat + b.fat,
-    pricePhp: a.pricePhp + b.pricePhp,
   };
 }
 

@@ -90,7 +90,7 @@ export function ProgressScreen() {
           </dl>
           <p>{copy.advice}</p>
           {needsRetarget && (
-            <div className={styles.retarget}>
+            <div className={`on-paper ${styles.retarget}`}>
               <p>
                 Your target was set for {fmtDecimal(profile.weightKg)} kg. You are now {fmtDecimal(latest.weightKg)} kg.
               </p>

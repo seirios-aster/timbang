@@ -22,7 +22,7 @@
 .facts {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  border-block: var(--border);
+  border-block: 2px solid var(--ink);
 }
 
 .fact {
@@ -66,7 +66,6 @@
   padding: var(--s3) var(--s4);
   border: 2px dashed var(--red);
   border-radius: var(--radius);
-  background: var(--paper);
   font-size: var(--text-sm);
 }
 
@@ -88,10 +87,21 @@
   font-size: var(--display-md);
 }
 
+/* One ruled line under the macros, like a note at the foot of a receipt. */
+.water {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: baseline;
+  gap: var(--s4);
+  padding-block: var(--s3);
+  border-block: 1px solid var(--rule-strong);
+  font-size: var(--text-sm);
+}
+
 /* Fine-tune */
 
 .fineTune {
-  border: var(--border);
+  border: 2px solid var(--ink);
   border-radius: var(--radius);
   background: var(--surface);
 }
@@ -134,7 +144,7 @@
   flex-direction: column;
   gap: var(--s5);
   padding: var(--s4);
-  border-top: var(--border);
+  border-top: 2px solid var(--ink);
 }
 
 .bodyFat {

@@ -7,7 +7,7 @@
 .row {
   display: grid;
   grid-template-columns: auto 1fr auto;
-  border: var(--border);
+  border: 2px solid var(--ink);
   border-radius: var(--radius);
   background: var(--surface);
   overflow: hidden;
@@ -23,11 +23,11 @@
 }
 
 .step:first-child {
-  border-right: var(--border);
+  border-right: 2px solid var(--ink);
 }
 
 .step:last-child {
-  border-left: var(--border);
+  border-left: 2px solid var(--ink);
 }
 
 .step:disabled {

@@ -69,7 +69,7 @@
   min-width: 0;
   height: 3.5rem;
   padding: 0 var(--s3);
-  border: var(--border);
+  border: 2px solid var(--ink);
   border-radius: var(--radius);
   background: var(--surface);
   font-family: var(--font-mono);
@@ -92,7 +92,7 @@
 
 .pace {
   padding-top: var(--s5);
-  border-top: var(--border);
+  border-top: 2px solid var(--ink);
 }
 
 .paceHead {
@@ -149,14 +149,13 @@
   padding: var(--s4);
   border: 2px dashed var(--ink);
   border-radius: var(--radius);
-  background: var(--paper);
   font-size: var(--text-sm);
 }
 
 /* History */
 
 .history {
-  border-top: var(--border);
+  border-top: 2px solid var(--ink);
 }
 
 .entry {

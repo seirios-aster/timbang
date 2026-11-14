@@ -4,7 +4,7 @@ import { itemTotals, mealTotals } from '@/domain/mealplan/totals';
 import type { DayPlan, Totals } from '@/domain/mealplan/types';
 import type { MacroTargets } from '@/domain/nutrition/types';
 import { DAYS } from '@/lib/date';
-import { fmtInt, fmtPortion, fmtSigned, peso } from '@/lib/format';
+import { fmtInt, fmtPortion, fmtSigned } from '@/lib/format';
 import { Icon } from '@/ui/Icon';
 import styles from './Resibo.module.css';
 
@@ -19,7 +19,7 @@ const macroLine = (t: Totals) => `P ${fmtInt(t.protein)} · C ${fmtInt(t.carbs)}
 
 /**
  * The day's meal plan as a receipt: every food is a line with its portion,
- * calories, macros and estimated price, with subtotals per meal and a total.
+ * calories, macros and weight, with subtotals per meal and a total.
  */
 export function Resibo({ day, totals, targets, onSelectItem }: ResiboProps) {
   const serial = String(day.seed % 1_000_000).padStart(6, '0');
@@ -29,7 +29,7 @@ export function Resibo({ day, totals, targets, onSelectItem }: ResiboProps) {
     <article className={styles.resibo} key={`${day.dayIndex}-${day.seed}`} aria-label="Meal plan for the day">
       <span className={`${styles.edge} ${styles.edgeTop}`} aria-hidden="true" />
 
-      <div className={styles.paper}>
+      <div className={`on-paper ${styles.paper}`}>
         <header className={styles.head}>
           <p className={styles.store}>{BRAND.name}</p>
           <p className={styles.sub}>Plano ng pagkain · {DAYS[day.dayIndex]?.long}</p>
@@ -64,7 +64,7 @@ export function Resibo({ day, totals, targets, onSelectItem }: ResiboProps) {
                         <span className={styles.detail}>
                           {fmtPortion(item.portions, food.unit)} · {macroLine(line)}
                         </span>
-                        <span className={styles.price}>{peso(line.pricePhp)}</span>
+                        <span className={styles.grams}>{fmtInt(food.grams * item.portions)} g</span>
                         <span className={styles.swapIcon}>
                           <Icon name="swap" size={18} />
                         </span>
@@ -97,16 +97,12 @@ export function Resibo({ day, totals, targets, onSelectItem }: ResiboProps) {
               {fmtInt(totals.protein)} / {fmtInt(totals.carbs)} / {fmtInt(totals.fat)} g
             </dd>
           </div>
-          <div className={styles.row}>
-            <dt>Est. cost</dt>
-            <dd>{peso(totals.pricePhp)}</dd>
-          </div>
         </dl>
 
         <footer className={styles.foot}>
           <p>Salamat. Kain nang mabuti.</p>
           <p className={styles.footNote}>
-            Calories, macros and prices are estimates. They vary by recipe, serving and where you buy.
+            Calories and macros are estimates. They vary by recipe and serving size.
           </p>
         </footer>
       </div>

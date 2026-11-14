@@ -12,7 +12,7 @@
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  border: var(--border);
+  border: 2px solid var(--ink);
   border-radius: var(--radius);
   background: var(--ground);
 }
@@ -27,11 +27,11 @@
 }
 
 .step:first-child {
-  border-right: var(--border);
+  border-right: 2px solid var(--ink);
 }
 
 .step:last-child {
-  border-left: var(--border);
+  border-left: 2px solid var(--ink);
 }
 
 .step:disabled {
@@ -59,7 +59,7 @@
 
 .macros {
   display: grid;
-  grid-template-columns: repeat(5, auto);
+  grid-template-columns: repeat(4, auto);
   justify-content: space-between;
   gap: var(--s2);
   font-family: var(--font-mono);
@@ -84,7 +84,7 @@
   flex-direction: column;
   gap: var(--s2);
   padding-top: var(--s4);
-  border-top: var(--border);
+  border-top: 2px solid var(--ink);
 }
 
 .swapHeading {
@@ -100,7 +100,7 @@
 .list {
   display: grid;
   margin-top: var(--s2);
-  border: var(--border);
+  border: 2px solid var(--ink);
   border-radius: var(--radius);
   overflow: hidden;
 }
@@ -127,12 +127,12 @@
 }
 
 .option:active {
-  background: var(--paper);
+  background: var(--ground);
 }
 
 @media (hover: hover) {
   .option:hover {
-    background: var(--paper);
+    background: var(--ground);
   }
 }
 

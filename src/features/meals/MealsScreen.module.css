@@ -28,7 +28,6 @@
   padding: var(--s3) var(--s4);
   border: 2px dashed var(--ink);
   border-radius: var(--radius);
-  background: var(--paper);
   font-size: var(--text-sm);
 }
 

@@ -21,9 +21,6 @@ const LEAN_BIAS_STARTS_AT = 0.24;
 const LEAN_BIAS_STRENGTH = 18;
 const MAX_LEAN_BIAS = 3;
 
-/** On the tipid budget, cheaper foods are favoured. A food at this price is half as likely as a free one. */
-const THRIFT_HALF_PRICE_PHP = 35;
-
 /** Below this many calories a day, optional extras are left out more and more often. */
 const FULL_EXTRAS_FROM_KCAL = 2600;
 
@@ -83,8 +80,7 @@ function chooseFood(pick: Pick, slot: MealSlot, taken: Set<string>, context: Men
   const weights = pool.map((food) => {
     const variety = 1 / (1 + REPEAT_PENALTY * (usage.get(food.id) ?? 0));
     const lean = PROTEIN_ROLES.has(pick.role) ? (0.15 + proteinDensity(food)) ** bias : 1;
-    const thrift = prefs.budget === 1 ? THRIFT_HALF_PRICE_PHP / (THRIFT_HALF_PRICE_PHP + food.pricePhp) : 1;
-    return variety * lean * thrift;
+    return variety * lean;
   });
   return pickWeighted(pool, weights, rng);
 }

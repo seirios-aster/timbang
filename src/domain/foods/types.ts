@@ -11,7 +11,10 @@ export type FoodRole =
 
 export type MealSlot = 'almusal' | 'tanghalian' | 'meryenda' | 'hapunan';
 
-/** 1 = tipid, 2 = sakto, 3 = sagana. A plan may use foods at or below its tier. */
+/**
+ * 1 = tipid, 2 = sakto, 3 = sagana. A plan may use foods at or below its tier.
+ * Tiers rank foods by how costly they usually are. The app stores no prices, since those change.
+ */
 export type BudgetTier = 1 | 2 | 3;
 
 /** Ingredients a person can choose to leave out. */
@@ -51,8 +54,6 @@ export interface Food {
   protein: number;
   carbs: number;
   fat: number;
-  /** Rough peso cost for one unit, home-cooked or carinderia. An estimate, not a quote. */
-  pricePhp: number;
   tier: BudgetTier;
   contains: DietTag[];
   portions: PortionRange;

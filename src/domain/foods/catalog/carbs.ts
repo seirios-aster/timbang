@@ -12,7 +12,6 @@ export const carbs: FoodInput[] = [
     protein: 4,
     carbs: 45,
     fat: 0.5,
-    pricePhp: 8,
     tier: 1,
   },
   {
@@ -26,7 +25,6 @@ export const carbs: FoodInput[] = [
     protein: 5,
     carbs: 46,
     fat: 7,
-    pricePhp: 12,
     tier: 1,
   },
   {
@@ -40,7 +38,6 @@ export const carbs: FoodInput[] = [
     protein: 5,
     carbs: 45,
     fat: 2,
-    pricePhp: 14,
     tier: 2,
   },
   {
@@ -54,7 +51,6 @@ export const carbs: FoodInput[] = [
     protein: 2.5,
     carbs: 16,
     fat: 1.5,
-    pricePhp: 4,
     tier: 1,
     portions: { min: 1, max: 5, step: 1 },
   },
@@ -69,7 +65,6 @@ export const carbs: FoodInput[] = [
     protein: 2.5,
     carbs: 15,
     fat: 1,
-    pricePhp: 5,
     tier: 1,
   },
   {
@@ -83,7 +78,6 @@ export const carbs: FoodInput[] = [
     protein: 10,
     carbs: 54,
     fat: 6,
-    pricePhp: 20,
     tier: 1,
     portions: { min: 0.5, max: 1.5, step: 0.5 },
   },
@@ -98,7 +92,6 @@ export const carbs: FoodInput[] = [
     protein: 2,
     carbs: 30,
     fat: 0.2,
-    pricePhp: 15,
     tier: 1,
     portions: { min: 1, max: 3, step: 1 },
   },

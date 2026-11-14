@@ -128,7 +128,7 @@
   display: grid;
   gap: 2px;
   padding: var(--s2) var(--s3);
-  border: var(--border);
+  border: 2px solid var(--ink);
   border-radius: var(--radius);
   background: var(--surface);
   font-family: var(--font-mono);

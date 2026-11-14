@@ -41,6 +41,8 @@ export interface Targets extends MacroTargets {
   maintenance: number;
   /** Target minus maintenance, in kcal. Negative when cutting. */
   deltaKcal: number;
+  /** A daily water amount to aim for, in litres. */
+  waterL: number;
   /** Expected body weight change per week at this target, in kg. */
   weeklyChangeKg: number;
   pace: Pace;

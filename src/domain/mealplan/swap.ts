@@ -60,7 +60,6 @@ export function swapOptions(day: DayPlan, mealId: string, itemIndex: number, pre
           protein: match.totals.protein - current.protein,
           carbs: match.totals.carbs - current.carbs,
           fat: match.totals.fat - current.fat,
-          pricePhp: match.totals.pricePhp - current.pricePhp,
         },
       };
     })

@@ -5,6 +5,7 @@ import { fmtDecimal, fmtInt, fmtSigned } from '@/lib/format';
 import { usePlanStore } from '@/state/planStore';
 import { useProfileStore } from '@/state/profileStore';
 import { useProgressStore } from '@/state/progressStore';
+import { useTrainingStore } from '@/state/trainingStore';
 import { useTargets } from '@/state/useTargets';
 import { Barbell } from '@/ui/Barbell';
 import { Button } from '@/ui/Button';
@@ -27,6 +28,7 @@ export function TargetScreen({ go }: TargetScreenProps) {
   const buildPlan = usePlanStore((state) => state.build);
   const clearPlan = usePlanStore((state) => state.clear);
   const clearProgress = useProgressStore((state) => state.clear);
+  const clearTraining = useTrainingStore((state) => state.clear);
   const targets = useTargets();
   const [confirmingReset, setConfirmingReset] = useState(false);
 
@@ -42,6 +44,7 @@ export function TargetScreen({ go }: TargetScreenProps) {
   const startOver = () => {
     clearPlan();
     clearProgress();
+    clearTraining();
     resetProfile();
   };
 
@@ -83,7 +86,7 @@ export function TargetScreen({ go }: TargetScreenProps) {
         <p className={styles.summary}>{summarize(profile.goal, targets)}</p>
 
         {targets.floorApplied && (
-          <p className={styles.notice}>
+          <p className={`on-paper ${styles.notice}`}>
             Your target stops at {fmtInt(targets.calories)} kcal. Eating less than that is not a good idea without a
             doctor or dietitian guiding you.
           </p>
@@ -98,6 +101,12 @@ export function TargetScreen({ go }: TargetScreenProps) {
           <span className="eyebrow">{fmtDecimal(targets.proteinPerKg, 1)} g protein per kg</span>
         </div>
         <Barbell proteinG={targets.proteinG} carbsG={targets.carbsG} fatG={targets.fatG} />
+        <p className={styles.water}>
+          <span className="eyebrow">Water</span>
+          <span>
+            About <strong>{fmtDecimal(targets.waterL, 1)} L</strong> a day. Drink more when you train or it is hot.
+          </span>
+        </p>
       </section>
 
       <Button size="lg" block onClick={openPlan}>

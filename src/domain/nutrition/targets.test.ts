@@ -98,6 +98,10 @@ describe('computeTargets', () => {
     expect(heavy.proteinG).toBe(175);
   });
 
+  it('suggests water from body weight', () => {
+    expect(computeTargets(lifter).waterL).toBeCloseTo(2.5, 5); // 70 kg * 35 ml
+  });
+
   it('respects manual overrides', () => {
     const targets = computeTargets({ ...lifter, goal: 'lose', pace: 'easy', proteinPerKg: 2.5 });
     expect(targets.calories / targets.maintenance).toBeCloseTo(0.9, 1);

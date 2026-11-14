@@ -1,0 +1,26 @@
+.toggle {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink);
+  transition:
+    background-color 140ms,
+    color 140ms;
+}
+
+.toggle:active {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+
+@media (hover: hover) {
+  .toggle:hover {
+    background: var(--ink);
+    color: var(--on-ink);
+  }
+}

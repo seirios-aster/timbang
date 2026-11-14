@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { BRAND } from '@/config/brand';
 import { Button } from '@/ui/Button';
 import { Dial } from '@/ui/Dial';
-import { Icon } from '@/ui/Icon';
+import { Icon, type IconName } from '@/ui/Icon';
+import { ThemeToggle } from '@/ui/ThemeToggle';
 import styles from './Onboarding.module.css';
 
 /** Sample readings the welcome dial moves between, to show what the app does. */
@@ -12,16 +13,19 @@ const SAMPLES = [
   { calories: 2530, deltaKcal: 330, caption: 'sample bulk' },
 ];
 
-const PROMISES = [
-  { title: 'Your calorie target', detail: 'For losing fat, maintaining, or building muscle.' },
-  { title: 'A week of meals that hit it', detail: 'Kanin, ulam, gulay. Priced in pesos.' },
-  { title: 'A weigh-in log', detail: 'It tells you if the plan is working.' },
+/** What the person gets, one per tab of the app. */
+const INCLUDED: { icon: IconName; label: string }[] = [
+  { icon: 'dial', label: 'Calories' },
+  { icon: 'resibo', label: 'Meal plan' },
+  { icon: 'dumbbell', label: 'Training' },
+  { icon: 'trend', label: 'Progress' },
 ];
 
 interface WelcomeProps {
   onStart: () => void;
 }
 
+/** First screen. Sized to fit one phone screen, so the button is visible without scrolling. */
 export function Welcome({ onStart }: WelcomeProps) {
   const [index, setIndex] = useState(0);
 
@@ -37,30 +41,30 @@ export function Welcome({ onStart }: WelcomeProps) {
   return (
     <div className={styles.welcome}>
       <header className={styles.hero}>
-        <p className="eyebrow">{BRAND.tagline}</p>
+        <div className={styles.heroTop}>
+          <p className="eyebrow">{BRAND.tagline}</p>
+          <ThemeToggle />
+        </div>
         <h1 className={`display ${styles.wordmark}`}>{BRAND.name}</h1>
-        <p className={styles.pitch}>Eat for your lifts, with food you already know.</p>
+        <p className={styles.pitch}>Eat and train for your goal, with food you already know.</p>
       </header>
 
       <div className={styles.heroDial}>
-        <Dial calories={sample.calories} deltaKcal={sample.deltaKcal} caption={sample.caption} />
+        <Dial calories={sample.calories} deltaKcal={sample.deltaKcal} caption={sample.caption} fit="box" />
       </div>
 
-      <ol className={styles.promises}>
-        {PROMISES.map((promise, i) => (
-          <li key={promise.title} className={styles.promise}>
-            <span className={`mono ${styles.promiseNo}`}>{String(i + 1).padStart(2, '0')}</span>
-            <span>
-              <strong className={styles.promiseTitle}>{promise.title}</strong>
-              <span className={styles.promiseDetail}>{promise.detail}</span>
-            </span>
+      <ul className={styles.included} aria-label="What you get">
+        {INCLUDED.map((item) => (
+          <li key={item.label} className={styles.includedItem}>
+            <Icon name={item.icon} size={22} />
+            <span>{item.label}</span>
           </li>
         ))}
-      </ol>
+      </ul>
 
       <div className={styles.welcomeAction}>
         <Button size="lg" block onClick={onStart}>
-          Get my target <Icon name="arrowRight" />
+          Get my plan <Icon name="arrowRight" />
         </Button>
         <p className={styles.fine}>Six quick questions. For adults 18 and up. Estimates, not medical advice.</p>
       </div>

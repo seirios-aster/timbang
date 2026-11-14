@@ -8,6 +8,8 @@ interface DialProps {
   deltaKcal: number;
   /** Text under the number. */
   caption?: string;
+  /** `width` sizes the dial from its column. `box` fills a positioned parent, whatever its shape. */
+  fit?: 'width' | 'box';
 }
 
 // Geometry, in SVG units.
@@ -41,7 +43,7 @@ const TICKS = Array.from({ length: (MAX_DELTA * 2) / MINOR_STEP + 1 }, (_, i) =>
  * The timbangan: a hanging-scale face whose needle shows how far the calorie
  * target sits below or above maintenance. Left is a cut, right is a bulk.
  */
-export function Dial({ calories, deltaKcal, caption = 'kcal a day' }: DialProps) {
+export function Dial({ calories, deltaKcal, caption = 'kcal a day', fit = 'width' }: DialProps) {
   const angle = toAngle(deltaKcal);
 
   // The highlighted band runs from zero to the needle. The full arc has pathLength 200,
@@ -56,7 +58,7 @@ export function Dial({ calories, deltaKcal, caption = 'kcal a day' }: DialProps)
       : `Target ${fmtInt(calories)} kilocalories a day, ${fmtInt(Math.abs(deltaKcal))} ${direction} maintenance`;
 
   return (
-    <svg className={styles.dial} viewBox="0 0 320 330" role="img" aria-label={label}>
+    <svg className={fit === 'box' ? styles.box : styles.dial} viewBox="0 0 320 330" role="img" aria-label={label}>
       {/* Hook the scale hangs from */}
       <circle cx={CX} cy={13} r={8} className={styles.hook} />
       <rect x={CX - 5} y={20} width={10} height={12} className={styles.neck} />

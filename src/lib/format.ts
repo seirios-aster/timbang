@@ -18,8 +18,15 @@ export function fmtSigned(value: number, digits = 0): string {
   return `${value > 0 ? '+' : MINUS}${body}`;
 }
 
-export function peso(value: number): string {
-  return `₱${fmtInt(value)}`;
+/** A weight in kg without a trailing zero: 40, 42.5, 1.25. */
+export function fmtKg(value: number): string {
+  return String(Number(value.toFixed(2)));
+}
+
+/** A rest period in plain words: "75 sec", "2 min", "2½ min". */
+export function fmtRest(seconds: number): string {
+  if (seconds < 90) return `${seconds} sec`;
+  return `${fmtQuantity(Math.round(seconds / 30) / 2)} min`;
 }
 
 const FRACTIONS: Record<string, string> = { '0.25': '¼', '0.5': '½', '0.75': '¾' };

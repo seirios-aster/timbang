@@ -1,24 +1,78 @@
 /*
  * Layout concept: a carbon-copy resibo pad on a gym floor. Navy carbon ink on cool
  * paper, weight-plate colors for the three macros, and one round timbangan dial as the hero.
+ *
+ * Themes: every color is a token. The light theme is the default and lives on :root.
+ * Each other theme is one [data-theme] block below that redefines the same tokens.
+ * To add a theme, copy a block, rename it, and list it in src/state/themeStore.ts.
  */
 :root {
-  /* Color */
+  /* Page */
   --ground: #e4e8f0;
   --surface: #f5f6fa;
-  --paper: #fff6cc;
   --ink: #101b4d;
   --ink-2: #47517f;
   --ink-3: #7e86a8;
   --on-ink: #f5f6fa;
   --rule: rgba(16, 27, 77, 0.16);
   --rule-strong: rgba(16, 27, 77, 0.42);
+  --backdrop: rgba(16, 27, 77, 0.55);
 
   /* Weight-plate colors. Red, yellow and blue double as protein, carbs and fat. */
   --red: #d6362b;
   --yellow: #f3b61f;
   --blue: #2b55d4;
   --green: #17835a;
+  /* Text on a yellow fill. */
+  --on-accent: #101b4d;
+
+  /* Navigation bar */
+  --nav: #101b4d;
+  --on-nav: #f5f6fa;
+
+  /* The resibo and other paper slips. Paper keeps its own ink in every theme. */
+  --paper: #fff6cc;
+  --paper-ink: #101b4d;
+  --paper-ink-2: #47517f;
+
+  /* The training board. Always dark with light writing, like a gym chalkboard. */
+  --board: #101b4d;
+  --on-board: #f5f6fa;
+  --on-board-2: #b6bedf;
+
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --ground: #0a0f24;
+  --surface: #141b3b;
+  --ink: #eef0fa;
+  --ink-2: #a7aed0;
+  --ink-3: #6e769b;
+  --on-ink: #0a0f24;
+  --rule: rgba(238, 240, 250, 0.14);
+  --rule-strong: rgba(238, 240, 250, 0.36);
+  --backdrop: rgba(0, 0, 0, 0.66);
+
+  --red: #ff6155;
+  --yellow: #f8c23a;
+  --blue: #7b97ff;
+  --green: #41cf95;
+
+  --nav: #050816;
+  --on-nav: #eef0fa;
+
+  --paper: #f3e8b6;
+
+  --board: #1b2459;
+  --on-board: #f2f4fc;
+  --on-board-2: #b6bedf;
+
+  color-scheme: dark;
+}
+
+/* Tokens that do not change with the theme. */
+:root {
   --protein: var(--red);
   --carbs: var(--yellow);
   --fat: var(--blue);
@@ -48,7 +102,6 @@
   --s8: 4rem;
 
   --radius: 3px;
-  --border: 2px solid var(--ink);
   --gutter-left: max(16px, env(safe-area-inset-left, 0px));
   --gutter-right: max(16px, env(safe-area-inset-right, 0px));
   --tabbar-height: 4rem;
@@ -56,6 +109,38 @@
 
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-needle: cubic-bezier(0.34, 1.4, 0.64, 1);
+}
 
-  color-scheme: light;
+/*
+ * Surfaces with their own ink. Inside one of these, the ordinary tokens are
+ * re-pointed, so buttons, rules and text placed on it pick the right colors
+ * without knowing where they are.
+ */
+.on-paper {
+  --ink: var(--paper-ink);
+  --ink-2: var(--paper-ink-2);
+  --ink-3: #8a90ad;
+  --on-ink: var(--paper);
+  --rule: rgba(16, 27, 77, 0.16);
+  --rule-strong: rgba(16, 27, 77, 0.42);
+  --red: #d6362b;
+  --blue: #2b55d4;
+  --green: #17835a;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.on-board {
+  --ink: var(--on-board);
+  --ink-2: var(--on-board-2);
+  --ink-3: #8b94bd;
+  --on-ink: var(--board);
+  --surface: rgba(255, 255, 255, 0.07);
+  --rule: rgba(245, 246, 250, 0.16);
+  --rule-strong: rgba(245, 246, 250, 0.4);
+  --red: #ff6155;
+  --blue: #8ea6ff;
+  --green: #41cf95;
+  background: var(--board);
+  color: var(--ink);
 }

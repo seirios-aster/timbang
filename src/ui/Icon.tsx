@@ -13,7 +13,10 @@ export type IconName =
   | 'arrowLeft'
   | 'check'
   | 'scale'
-  | 'trash';
+  | 'trash'
+  | 'dumbbell'
+  | 'sun'
+  | 'moon';
 
 const PATHS: Record<IconName, ReactNode> = {
   dial: (
@@ -61,6 +64,20 @@ const PATHS: Record<IconName, ReactNode> = {
       <path d="M12 10l1.5-2" />
     </>
   ),
+  dumbbell: (
+    <>
+      <path d="M8 12h8" />
+      <path d="M5 7v10M8 5v14M16 5v14M19 7v10" />
+      <path d="M2 12h3M19 12h3" />
+    </>
+  ),
+  sun: (
+    <>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2" />
+    </>
+  ),
+  moon: <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z" />,
   trash: (
     <>
       <path d="M5 7h14M10 7V4h4v3" />

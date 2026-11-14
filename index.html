@@ -3,10 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#101B4D" />
+    <meta name="theme-color" content="#e4e8f0" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./icon-180.png" />
     <meta name="description" content="Calorie targets, Filipino meal plans and weight tracking for lifters." />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <title>Timbang</title>
+    <script>
+      // Apply the saved theme before the first paint, so a dark-theme user never sees a light flash.
+      try {
+        var saved = JSON.parse(localStorage.getItem('timbang.theme.v1') || 'null');
+        if (saved && saved.state && saved.state.theme) document.documentElement.dataset.theme = saved.state.theme;
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

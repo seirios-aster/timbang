@@ -6,7 +6,6 @@
   font-family: var(--font-mono);
   font-size: var(--text-sm);
   font-variant-numeric: tabular-nums;
-  color: var(--ink);
   animation: print 520ms var(--ease-out);
   transform-origin: top;
 }
@@ -29,7 +28,6 @@
   flex-direction: column;
   gap: var(--s4);
   padding: var(--s4) var(--s4) var(--s5);
-  background: var(--paper);
 }
 
 .head {
@@ -124,12 +122,12 @@
 }
 
 .detail,
-.price {
+.grams {
   font-size: 0.8125rem;
   color: var(--ink-2);
 }
 
-.price {
+.grams {
   text-align: right;
 }
 

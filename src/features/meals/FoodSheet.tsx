@@ -2,7 +2,7 @@ import { getFood } from '@/domain/foods/catalog';
 import { swapOptions } from '@/domain/mealplan/swap';
 import { foodTotals, itemTotals } from '@/domain/mealplan/totals';
 import type { DayPlan, PlanPrefs } from '@/domain/mealplan/types';
-import { fmtInt, fmtPortion, fmtSigned, peso } from '@/lib/format';
+import { fmtInt, fmtPortion, fmtSigned } from '@/lib/format';
 import { usePlanStore } from '@/state/planStore';
 import { Icon } from '@/ui/Icon';
 import { Sheet } from '@/ui/Sheet';
@@ -91,10 +91,6 @@ export function FoodSheet({ day, prefs, selection, onClose }: FoodSheetProps) {
             <dt>Fat</dt>
             <dd>{fmtInt(totals.fat)} g</dd>
           </div>
-          <div>
-            <dt>Est.</dt>
-            <dd>{peso(totals.pricePhp)}</dd>
-          </div>
         </dl>
 
         <section className={styles.swaps} aria-labelledby="swap-heading">
@@ -125,7 +121,7 @@ export function FoodSheet({ day, prefs, selection, onClose }: FoodSheetProps) {
                         {fmtPortion(option.portions, option.food.unit)} · {option.food.gloss}
                       </span>
                       <span className={styles.optionDelta}>
-                        {fmtSigned(option.delta.protein)} g protein · {fmtSigned(option.delta.pricePhp)} pesos
+                        {fmtSigned(option.delta.protein)} g protein · {fmtSigned(option.delta.kcal)} kcal
                       </span>
                     </button>
                   </li>

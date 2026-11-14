@@ -4,7 +4,7 @@
   gap: var(--s2);
   min-height: 2.75rem;
   padding: 0 var(--s3);
-  border: var(--border);
+  border: 2px solid var(--ink);
   border-radius: var(--radius);
   background: var(--surface);
   font-family: var(--font-display);
@@ -22,7 +22,7 @@
 .box {
   width: 0.875rem;
   height: 0.875rem;
-  border: var(--border);
+  border: 2px solid var(--ink);
   border-radius: 2px;
 }
 
