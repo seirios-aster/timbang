@@ -208,3 +208,32 @@
     color: var(--red);
   }
 }
+
+/* Calibration */
+
+.calibration {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s3);
+  padding: var(--s4);
+  border: 2px dashed var(--ink);
+  border-radius: var(--radius);
+  font-size: var(--text-sm);
+}
+
+.calibrationTitle {
+  font-size: var(--display-sm);
+}
+
+.calibrationActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s2) var(--s4);
+}
+
+.calibrationNote {
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}

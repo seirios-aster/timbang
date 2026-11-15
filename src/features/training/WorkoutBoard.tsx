@@ -7,6 +7,7 @@ import { fmtRest } from '@/lib/format';
 import { Button } from '@/ui/Button';
 import { Icon } from '@/ui/Icon';
 import { fmtDose, fmtWeight, loadUnit } from './copy';
+import { useDeloadActive } from './useProgram';
 import styles from './WorkoutBoard.module.css';
 
 interface WorkoutBoardProps {
@@ -25,6 +26,7 @@ interface WorkoutBoardProps {
  * reps, rest and the weight to load. Tapping a line opens the exercise.
  */
 export function WorkoutBoard({ workout, logs, lifter, unit, today, onSelect, onStart }: WorkoutBoardProps) {
+  const deload = useDeloadActive();
   const doneCount = workout.exercises.filter((planned) =>
     logs.some((log) => log.exerciseId === planned.exerciseId && log.date === today),
   ).length;
@@ -62,7 +64,7 @@ export function WorkoutBoard({ workout, logs, lifter, unit, today, onSelect, onS
         {workout.exercises.map((planned, index) => {
           const exercise = getExercise(planned.exerciseId);
           const done = logs.find((log) => log.exerciseId === planned.exerciseId && log.date === today);
-          const advice = adviseLoad(exercise, planned, lastLog(logs, planned.exerciseId, today), lifter, unit);
+          const advice = adviseLoad(exercise, planned, lastLog(logs, planned.exerciseId, today), lifter, unit, { deload });
           const weightKg = done ? done.weightKg : advice.weightKg;
           const unitLabel = loadUnit(exercise, unit);
 

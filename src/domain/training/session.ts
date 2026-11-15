@@ -1,3 +1,4 @@
+import { DEFAULT_RIR } from './effort';
 import type { LiftRecord } from './stats';
 import type { ExerciseLog, Workout } from './types';
 
@@ -14,6 +15,8 @@ export interface SetEntry {
   weightKg: number | null;
   /** Reps done, or seconds for timed holds. */
   reps: number;
+  /** Reps left after the set, as the person judged it. */
+  rir?: number;
 }
 
 export type SessionPhase = 'work' | 'rest';
@@ -47,6 +50,8 @@ export interface SessionSummary {
   setsPlanned: number;
   liftsDone: number;
   liftsPlanned: number;
+  /** The lifts that had sets done, with their rep ranges, so next session can be worked out from them. */
+  lifts?: { exerciseId: string; repsMin: number; repsMax: number }[];
   /** Personal records set in this session. Filled in when the session is saved. */
   records?: LiftRecord[];
 }
@@ -185,12 +190,14 @@ export function sessionLogs(session: Session, workout: Workout): ExerciseLog[] {
   return workout.exercises.flatMap((planned) => {
     const entries = session.sets[planned.slot] ?? [];
     if (entries.length === 0) return [];
+    const rated = entries.some((entry) => entry.rir !== undefined);
     return [
       {
         exerciseId: planned.exerciseId,
         date: session.date,
         weightKg: mainWeight(entries),
         reps: entries.map((entry) => entry.reps),
+        ...(rated ? { rir: entries.map((entry) => entry.rir ?? DEFAULT_RIR) } : {}),
       },
     ];
   });
@@ -206,5 +213,8 @@ export function summarize(session: Session, workout: Workout, now: number): Sess
     setsPlanned: workout.exercises.reduce((total, planned) => total + planned.sets, 0),
     liftsDone: done.filter((count) => count > 0).length,
     liftsPlanned: workout.exercises.length,
+    lifts: workout.exercises
+      .filter((planned) => setsDoneFor(session, planned.slot) > 0)
+      .map((planned) => ({ exerciseId: planned.exerciseId, repsMin: planned.repsMin, repsMax: planned.repsMax })),
   };
 }

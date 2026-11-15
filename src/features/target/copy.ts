@@ -1,6 +1,13 @@
-import type { Goal, Pace, Targets } from '@/domain/nutrition/types';
+import type { Goal, Lifestyle, Pace, Targets } from '@/domain/nutrition/types';
 import { fmtDecimal, fmtInt } from '@/lib/format';
 import { bodyToDisplay, weightUnit, type UnitSystem } from '@/lib/units';
+
+export const LIFESTYLE_LABEL: Record<Lifestyle, string> = {
+  desk: 'Mostly sitting',
+  mixed: 'Sitting and moving',
+  onFeet: 'On my feet',
+  manual: 'Physical work',
+};
 
 export const GOAL_LABEL: Record<Goal, string> = {
   lose: 'Cut',

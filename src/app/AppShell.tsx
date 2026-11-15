@@ -16,10 +16,14 @@ const TABS: { route: Route; label: string; icon: IconName }[] = [
 interface AppShellProps {
   route: Route;
   children: ReactNode;
+  /** Show only the screen, with no header or tab bar. Used while a workout is running. */
+  immersive?: boolean;
 }
 
 /** Page frame: brand header, the current screen, and the tab bar (a side rail on wide screens). */
-export function AppShell({ route, children }: AppShellProps) {
+export function AppShell({ route, children, immersive = false }: AppShellProps) {
+  if (immersive) return <>{children}</>;
+
   const today = `${DAYS[todayIndex()]?.short} · ${fmtShortDate(todayIso())}`;
 
   return (

@@ -1,4 +1,5 @@
 import type { Experience, Sex } from '../nutrition/types';
+import { averageRir } from './effort';
 import type { Exercise, ExerciseLog, Lifter, LoadAdvice, LoadType, PlannedExercise } from './types';
 import { displayWeight, fromKg, toKg, UNIT_SYSTEMS, type WeightUnit } from './units';
 
@@ -89,9 +90,25 @@ export function lastLog(
 
 type Range = Pick<PlannedExercise, 'repsMin' | 'repsMax'>;
 
+/** How much lighter an easier week is. */
+export const DELOAD_FACTOR = 0.9;
+
+export interface AdviseOptions {
+  /** An easier week: lighter weights and a relaxed target. */
+  deload?: boolean;
+}
+
 /**
- * What to load next, using double progression: stay at a weight until every set
- * reaches the top of the rep range, then add weight and work back up.
+ * What to load next, using double progression with effort: stay at a weight until every set
+ * reaches the top of the rep range with reps to spare, then add weight and work back up.
+ *
+ * Effort changes the call at the edges:
+ * - Every set reached the top but most went to the limit: hold, and repeat once more.
+ * - Sets felt easy (3 or more left): the weight is too light, so step up even before the top.
+ *   If they also reached the top, take a double step.
+ * - A set fell under the bottom of the range: back off, whatever the effort.
+ *
+ * With no effort recorded, sets count as "2 left", so only the rep rules apply.
  * With no earlier session it gives a starting estimate.
  * Weights in and out are kg. `unit` decides which jumps and rounding apply.
  */
@@ -101,69 +118,116 @@ export function adviseLoad(
   previous: ExerciseLog | undefined,
   lifter: Lifter,
   unit: WeightUnit = 'kg',
+  options: AdviseOptions = {},
 ): LoadAdvice {
   const repUnit = exercise.timed ? 'seconds' : 'reps';
   const weighted = exercise.load !== 'bodyweight';
+  const middle = Math.round((range.repsMin + range.repsMax) / 2);
 
   if (!previous || previous.reps.length === 0 || (weighted && previous.weightKg === null)) {
     const weightKg = startingLoad(exercise, lifter, unit);
+    const eased = options.deload && weightKg !== null ? toKg(roundLoad(fromKg(weightKg, unit) * DELOAD_FACTOR, exercise.load, unit), unit) : weightKg;
     return {
-      weightKg,
-      basis: 'start',
-      note: !weighted
-        ? `Stop each set with about two ${exercise.timed ? 'seconds of good form' : 'reps'} left.`
-        : weightKg === null
-          ? `Pick a weight you can lift for ${range.repsMax} good reps, and log it. The app takes it from there.`
-          : 'A starting estimate from your body weight. You should finish each set with about two reps left. Adjust it today if it feels off.',
+      weightKg: eased,
+      targetReps: middle,
+      basis: options.deload ? 'deload' : 'start',
+      note: options.deload
+        ? 'An easier week. Keep every rep clean and stop well short of your limit.'
+        : !weighted
+          ? `Stop each set with about two ${exercise.timed ? 'seconds of good form' : 'reps'} left.`
+          : weightKg === null
+            ? `Pick a weight you can lift for ${range.repsMax} good reps, and log it. The app takes it from there.`
+            : 'A starting estimate from your body weight. You should finish each set with about two reps left. Adjust it today if it feels off.',
     };
   }
 
   const fewest = Math.min(...previous.reps);
   const hitTop = fewest >= range.repsMax;
   const hitBottom = fewest >= range.repsMin;
+  const effort = averageRir(previous);
+  const grind = effort < 1;
+  const easy = effort >= 2.5;
+  const veryEasy = effort >= 3;
+
+  if (options.deload) {
+    const weightKg = weighted ? toKg(roundLoad(displayWeight(previous.weightKg ?? 0, unit) * DELOAD_FACTOR, exercise.load, unit), unit) : null;
+    return {
+      weightKg,
+      targetReps: middle,
+      basis: 'deload',
+      note: weighted
+        ? `An easier week: about 10% lighter and one set fewer. Aim for ${middle} ${repUnit} with plenty left.`
+        : `An easier week: one set fewer. Stop each set with at least four ${exercise.timed ? 'seconds' : 'reps'} left.`,
+    };
+  }
 
   if (!weighted) {
-    if (hitTop) {
+    if (hitTop && !grind) {
       return {
         weightKg: null,
+        targetReps: range.repsMax,
         basis: 'up',
         note: exercise.timed
           ? `You held ${range.repsMax} seconds on every set. Add a set, or make it harder by lifting one foot.`
           : `You hit ${range.repsMax} reps on every set. Add a set, or lower yourself over three seconds to make it harder.`,
       };
     }
+    const target = Math.min(range.repsMax, fewest + (exercise.timed ? 5 : 1));
     return {
       weightKg: null,
+      targetReps: target,
       basis: 'hold',
-      note: `Add a few ${repUnit} to each set until every set reaches ${range.repsMax}.`,
+      note: hitTop
+        ? 'You reached the top on every set, but it was close to your limit. Repeat it once more before making it harder.'
+        : `Add a few ${repUnit} to each set until every set reaches ${range.repsMax}.`,
     };
   }
 
   const weightKg = previous.weightKg ?? 0;
   const weight = displayWeight(weightKg, unit);
+  const stepUp = (steps: number, note: string): LoadAdvice => ({
+    weightKg: toKg(roundLoad(weight + increment(exercise, weight, unit) * steps, exercise.load, unit), unit),
+    targetReps: range.repsMin,
+    basis: 'up',
+    note,
+  });
+  const jump = increment(exercise, weight, unit);
+
+  if (!hitBottom) {
+    const lighter = Math.min(roundLoad(weight * BACK_OFF, exercise.load, unit), weight);
+    return {
+      weightKg: toKg(lighter, unit),
+      targetReps: range.repsMin,
+      basis: 'down',
+      note: `A set fell under ${range.repsMin} reps last time, so the weight was too heavy. Drop it and build back up.`,
+    };
+  }
 
   if (hitTop) {
-    const step = increment(exercise, weight, unit);
-    return {
-      weightKg: toKg(roundLoad(weight + step, exercise.load, unit), unit),
-      basis: 'up',
-      note: `You hit ${range.repsMax} reps on every set last time. Add ${step} ${unit} and work back up from ${range.repsMin}.`,
-    };
+    if (grind) {
+      return {
+        weightKg,
+        targetReps: range.repsMax,
+        basis: 'hold',
+        note: `You reached ${range.repsMax} reps on every set, but most sets went to your limit. Repeat this weight once more. It goes up when it feels solid.`,
+      };
+    }
+    if (veryEasy) {
+      return stepUp(2, `You hit ${range.repsMax} reps on every set and it felt easy. Add ${jump * 2} ${unit} and work back up from ${range.repsMin}.`);
+    }
+    return stepUp(1, `You hit ${range.repsMax} reps on every set last time. Add ${jump} ${unit} and work back up from ${range.repsMin}.`);
   }
 
-  if (hitBottom) {
-    return {
-      weightKg,
-      basis: 'hold',
-      note: `Same weight as last time. Add reps until every set reaches ${range.repsMax}.`,
-    };
+  if (easy) {
+    return stepUp(1, `Your sets felt easy, so this weight is too light for ${range.repsMin} to ${range.repsMax} reps. Add ${jump} ${unit} and work back up from ${range.repsMin}.`);
   }
 
-  const lighter = Math.min(roundLoad(weight * BACK_OFF, exercise.load, unit), weight);
+  const target = Math.min(range.repsMax, fewest + 1);
   return {
-    weightKg: toKg(lighter, unit),
-    basis: 'down',
-    note: `A set fell under ${range.repsMin} reps last time, so the weight was too heavy. Drop it and build back up.`,
+    weightKg,
+    targetReps: target,
+    basis: 'hold',
+    note: `Same weight as last time. Aim for ${target} reps on every set. When every set reaches ${range.repsMax}, it goes up.`,
   };
 }
 

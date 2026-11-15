@@ -1,15 +1,18 @@
+import { useState } from 'react';
 import type { Route } from '@/app/router';
 import { estimateMinutes, nextWorkout } from '@/domain/training/program';
 import { sortByDate } from '@/domain/progress/trend';
 import { GOAL_LABEL } from '@/features/target/copy';
 import { EatBlock } from './EatBlock';
 import { InstallCard } from './InstallCard';
+import { StepsSheet } from './StepsSheet';
 import { useProgram } from '@/features/training/useProgram';
 import { DAYS, todayIndex, todayIso } from '@/lib/date';
 import { fmtBody, fmtWater } from '@/lib/units';
 import { useUnits } from '@/state/settingsStore';
 import { useProfileStore } from '@/state/profileStore';
 import { useProgressStore } from '@/state/progressStore';
+import { useStepsStore } from '@/state/stepsStore';
 import { useTargets } from '@/state/useTargets';
 import { useTrainingStore } from '@/state/trainingStore';
 import { Button } from '@/ui/Button';
@@ -29,6 +32,9 @@ export function TodayScreen({ go }: TodayScreenProps) {
   const session = useTrainingStore((state) => state.session);
   const beginSession = useTrainingStore((state) => state.beginSession);
   const targets = useTargets();
+  const stepDays = useStepsStore((state) => state.days);
+  const stepGoal = useStepsStore((state) => state.goal);
+  const [stepsOpen, setStepsOpen] = useState(false);
   const { system } = useUnits();
   const { program } = useProgram();
 
@@ -131,6 +137,8 @@ export function TodayScreen({ go }: TodayScreenProps) {
 
       <EatBlock go={go} />
 
+      <StepsSheet open={stepsOpen} onClose={() => setStepsOpen(false)} />
+
       <InstallCard />
 
       {/* Weigh in, water, target */}
@@ -147,6 +155,17 @@ export function TodayScreen({ go }: TodayScreenProps) {
             </span>
             <span className={weighedToday ? styles.rowDone : styles.rowGo}>
               <Icon name={weighedToday ? 'check' : 'arrowRight'} size={18} />
+            </span>
+          </button>
+        </li>
+        <li>
+          <button type="button" className={styles.row} onClick={() => setStepsOpen(true)}>
+            <span className={`mono ${styles.label}`}>Steps</span>
+            <span className={styles.rowValue}>
+              {stepDays[today] ? `${stepDays[today].toLocaleString('en-PH')} of ${stepGoal.toLocaleString('en-PH')}` : 'Log today\'s steps'}
+            </span>
+            <span className={stepDays[today] && stepDays[today] >= stepGoal ? styles.rowDone : styles.rowGo}>
+              <Icon name={stepDays[today] && stepDays[today] >= stepGoal ? 'check' : 'arrowRight'} size={18} />
             </span>
           </button>
         </li>

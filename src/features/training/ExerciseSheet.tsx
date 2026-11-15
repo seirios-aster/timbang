@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { getExercise } from '@/domain/training/exercises';
+import { EFFORTS } from '@/domain/training/effort';
 import { adviseLoad, lastLog } from '@/domain/training/loads';
 import { swapKey } from '@/domain/training/program';
 import { liftStats } from '@/domain/training/stats';
@@ -9,6 +10,7 @@ import { fmtShortDate } from '@/lib/date';
 import { fmtInt, fmtRest } from '@/lib/format';
 import { useTrainingStore } from '@/state/trainingStore';
 import { Button } from '@/ui/Button';
+import { ChoiceList } from '@/ui/ChoiceList';
 import { Icon } from '@/ui/Icon';
 import { NumberField } from '@/ui/NumberField';
 import { Sheet } from '@/ui/Sheet';
@@ -19,6 +21,7 @@ import { ExercisePicker } from './ExercisePicker';
 import styles from './ExerciseSheet.module.css';
 import { PlateStack } from './PlateStack';
 import { SetCounters } from './SetCounters';
+import { useDeloadActive } from './useProgram';
 
 interface ExerciseSheetProps {
   workout: Workout;
@@ -56,13 +59,15 @@ function LogForm({ exercise, planned, suggestedKg, done, previous, unit, today, 
   // The field works in the gym's unit. It is converted to kg when saved.
   const [weight, setWeight] = useState(() => displayWeight(done?.weightKg ?? suggestedKg ?? 0, unit));
   const [reps, setReps] = useState(() => startingReps(planned, done, previous));
+  // How hard the sets felt overall. A hand-entered log has one rating for all its sets.
+  const [rir, setRir] = useState(2);
 
   return (
     <form
       className={styles.form}
       onSubmit={(event) => {
         event.preventDefault();
-        log({ exerciseId: exercise.id, date: today, weightKg: weighted ? toKg(weight, unit) : null, reps });
+        log({ exerciseId: exercise.id, date: today, weightKg: weighted ? toKg(weight, unit) : null, reps, rir: reps.map(() => rir) });
         onSaved();
       }}
     >
@@ -94,6 +99,15 @@ function LogForm({ exercise, planned, suggestedKg, done, previous, unit, today, 
         onChange={setReps}
       />
 
+      <ChoiceList
+        name="log-effort"
+        legend="How hard was it? Reps you had left"
+        layout="cells"
+        value={rir}
+        onChange={setRir}
+        choices={EFFORTS.map((effort) => ({ value: effort.rir, title: effort.label, detail: effort.detail }))}
+      />
+
       <Button type="submit" size="lg" block>
         {done ? 'Update log' : 'Save'} <Icon name="check" />
       </Button>
@@ -117,7 +131,8 @@ export function ExerciseSheet({ workout, slot, logs, lifter, equipment, unit, to
   const exercise = getExercise(planned.exerciseId);
   const previous = lastLog(logs, exercise.id, today);
   const done = logs.find((log) => log.exerciseId === exercise.id && log.date === today);
-  const advice = adviseLoad(exercise, planned, previous, lifter, unit);
+  const deload = useDeloadActive();
+  const advice = adviseLoad(exercise, planned, previous, lifter, unit, { deload });
   const stamp = BASIS_STAMP[advice.basis];
   const best = liftStats(logs, exercise.id);
 

@@ -56,6 +56,7 @@ function buildWorkout(
   experience: Experience,
   equipment: Equipment,
   swaps: Swaps,
+  deload: boolean,
 ): Workout {
   const taken = new Set<string>();
   const exercises: PlannedExercise[] = [];
@@ -72,7 +73,8 @@ function buildWorkout(
       exerciseId: exercise.id,
       pattern: slot.pattern,
       tier: slot.tier,
-      sets: dose.sets[experience],
+      // An easier week drops a set from every lift, but never below two.
+      sets: deload ? Math.max(2, dose.sets[experience] - 1) : dose.sets[experience],
       repsMin: exercise.timed ? HOLD.min : dose.repsMin,
       repsMax: exercise.timed ? HOLD.max : dose.repsMax,
       restSec: dose.restSec,
@@ -92,13 +94,14 @@ export function buildProgram(
   experience: Experience,
   equipment: Equipment,
   swaps: Swaps = {},
+  options: { deload?: boolean } = {},
 ): Program | null {
   const split = splitForDays(days);
   if (!split) return null;
 
   const week = split.week.map((templateId) => {
     const template = templateId ? TEMPLATES.get(templateId) : undefined;
-    return template ? buildWorkout(template, experience, equipment, swaps) : null;
+    return template ? buildWorkout(template, experience, equipment, swaps, Boolean(options.deload)) : null;
   });
 
   return { split, week };

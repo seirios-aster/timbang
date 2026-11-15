@@ -11,6 +11,7 @@ import { ChoiceList } from '@/ui/ChoiceList';
 import { Icon } from '@/ui/Icon';
 import { Stamp } from '@/ui/Stamp';
 import { paceCopy } from './copy';
+import { CalibrationCard } from './CalibrationCard';
 import { LiftsPanel } from './LiftsPanel';
 import styles from './ProgressScreen.module.css';
 import { TrendChart } from './TrendChart';
@@ -120,6 +121,7 @@ export function ProgressScreen() {
             </div>
           </dl>
           <p>{copy.advice}</p>
+          <CalibrationCard profile={profile} targets={targets} entries={sorted} />
           {needsRetarget && (
             <div className={`on-paper ${styles.retarget}`}>
               <p>

@@ -132,6 +132,11 @@ export function trainingTotals(logs: readonly ExerciseLog[]): TrainingTotals {
   };
 }
 
+/** Whole days from one calendar date to another. Negative when `to` is earlier. */
+export function daysBetweenDates(from: string, to: string): number {
+  return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000);
+}
+
 /** `weight` is more on the bar than ever. `strength` is a higher estimated max. `reps` is for bodyweight lifts. */
 export type RecordKind = 'weight' | 'strength' | 'reps';
 

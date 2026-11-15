@@ -9,7 +9,7 @@ import {
 } from '@/domain/training/session';
 import { findRecords } from '@/domain/training/stats';
 import type { Equipment, ExerciseLog, Swaps, Workout } from '@/domain/training/types';
-import { todayIso } from '@/lib/date';
+import { shiftDate, todayIso } from '@/lib/date';
 import { appStorage, storageKey } from './storage';
 
 /** Oldest logs are dropped past this many, so storage never fills up. */
@@ -24,6 +24,10 @@ interface TrainingState {
   session: Session | null;
   /** The result of the last finished session, shown until dismissed. */
   summary: SessionSummary | null;
+  /** The last day of an easier week, when one is under way. */
+  deloadUntil: string | null;
+  /** Until this date, do not suggest an easier week again. */
+  deloadSnoozedUntil: string | null;
 
   setEquipment: (equipment: Equipment) => void;
   swap: (key: string, exerciseId: string) => void;
@@ -39,10 +43,16 @@ interface TrainingState {
   discardSession: () => void;
   dismissSummary: () => void;
 
+  /** Starts an easier week that lasts a week from today. */
+  startDeload: () => void;
+  endDeload: () => void;
+  /** Hides the easier-week suggestion for a few days. */
+  snoozeDeload: () => void;
+
   clear: () => void;
 }
 
-type Saved = Pick<TrainingState, 'equipment' | 'swaps' | 'logs' | 'session' | 'summary'>;
+type Saved = Pick<TrainingState, 'equipment' | 'swaps' | 'logs' | 'session' | 'summary' | 'deloadUntil' | 'deloadSnoozedUntil'>;
 
 /** Adds entries to the logs, replacing any for the same exercise on the same day. */
 function mergeLogs(logs: ExerciseLog[], entries: ExerciseLog[]): ExerciseLog[] {
@@ -50,7 +60,15 @@ function mergeLogs(logs: ExerciseLog[], entries: ExerciseLog[]): ExerciseLog[] {
   return [...logs.filter((log) => !replaced.has(`${log.exerciseId}|${log.date}`)), ...entries].slice(-MAX_LOGS);
 }
 
-const INITIAL: Saved = { equipment: 'gym', swaps: {}, logs: [], session: null, summary: null };
+const INITIAL: Saved = {
+  equipment: 'gym',
+  swaps: {},
+  logs: [],
+  session: null,
+  summary: null,
+  deloadUntil: null,
+  deloadSnoozedUntil: null,
+};
 
 export const useTrainingStore = create<TrainingState>()(
   persist(
@@ -79,17 +97,23 @@ export const useTrainingStore = create<TrainingState>()(
       discardSession: () => set({ session: null }),
       dismissSummary: () => set({ summary: null }),
 
+      startDeload: () => set({ deloadUntil: shiftDate(todayIso(), 6), deloadSnoozedUntil: null }),
+      endDeload: () => set({ deloadUntil: null, deloadSnoozedUntil: shiftDate(todayIso(), 7) }),
+      snoozeDeload: () => set({ deloadSnoozedUntil: shiftDate(todayIso(), 7) }),
+
       clear: () => set(INITIAL),
     }),
     {
       name: storageKey('training'),
       storage: appStorage<Saved>(),
-      partialize: ({ equipment, swaps, logs, session, summary }) => ({
+      partialize: ({ equipment, swaps, logs, session, summary, deloadUntil, deloadSnoozedUntil }) => ({
         equipment,
         swaps,
         logs,
         session,
         summary,
+        deloadUntil,
+        deloadSnoozedUntil,
       }),
     },
   ),

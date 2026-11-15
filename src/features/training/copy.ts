@@ -20,6 +20,7 @@ export const BASIS_STAMP: Record<LoadBasis, { label: string; tone: 'ink' | 'gree
   up: { label: 'Go up', tone: 'green' },
   hold: { label: 'Hold', tone: 'ink' },
   down: { label: 'Back off', tone: 'red' },
+  deload: { label: 'Easy week', tone: 'blue' },
 };
 
 /** "6–10", or "30–60 sec" for holds. */

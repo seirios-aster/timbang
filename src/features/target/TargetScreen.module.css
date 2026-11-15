@@ -211,3 +211,8 @@
 .prefs {
   gap: var(--s4);
 }
+
+.sub {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}

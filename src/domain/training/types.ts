@@ -116,6 +116,11 @@ export interface ExerciseLog {
   weightKg: number | null;
   /** Reps done on each set, or seconds for timed holds. */
   reps: number[];
+  /**
+   * Reps left in the tank after each set, as the person judged it: 3 means easy, 0 means
+   * nothing left. Older logs and hand-entered ones may not have it.
+   */
+  rir?: number[];
 }
 
 /** Who the weight guidance is for. */
@@ -127,11 +132,13 @@ export interface Lifter {
 }
 
 /** `start` is an estimate before any log exists. The rest come from the last session. */
-export type LoadBasis = 'start' | 'up' | 'hold' | 'down';
+export type LoadBasis = 'start' | 'up' | 'hold' | 'down' | 'deload';
 
 export interface LoadAdvice {
   /** Suggested weight. Null for bodyweight exercises. */
   weightKg: number | null;
+  /** Reps to aim for on every set. */
+  targetReps?: number;
   basis: LoadBasis;
   note: string;
 }

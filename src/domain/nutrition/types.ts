@@ -25,6 +25,10 @@ export interface Profile {
   bodyFatPct?: number;
   pace?: Pace;
   proteinPerKg?: number;
+  /** A correction to the estimated maintenance calories, from how the scale actually moved. */
+  calorieAdjustment?: number;
+  /** The date the correction was made. Later weigh-ins are used to check it. */
+  calibratedOn?: string;
 }
 
 export type BmrFormula = 'mifflin' | 'katch';
@@ -39,6 +43,8 @@ export interface MacroTargets {
 export interface Targets extends MacroTargets {
   bmr: number;
   maintenance: number;
+  /** The part of `maintenance` that comes from the person's own weigh-ins, not the formula. */
+  calibrationKcal: number;
   /** Target minus maintenance, in kcal. Negative when cutting. */
   deltaKcal: number;
   /** A daily water amount to aim for, in litres. */

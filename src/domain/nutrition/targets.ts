@@ -54,7 +54,8 @@ const roundTo = (value: number, step: number) => Math.round(value / step) * step
 
 export function computeTargets(profile: Profile): Targets {
   const { value: bmrValue, formula } = bmr(profile);
-  const maintenance = maintenanceCalories(profile);
+  const calibrationKcal = profile.calorieAdjustment ?? 0;
+  const maintenance = maintenanceCalories(profile) + calibrationKcal;
 
   const pace = profile.pace ?? defaultPace(profile.goal, profile.experience);
   const wanted = maintenance * (1 + ADJUSTMENT[profile.goal][pace]);
@@ -79,6 +80,7 @@ export function computeTargets(profile: Profile): Targets {
   return {
     bmr: Math.round(bmrValue),
     maintenance: shownMaintenance,
+    calibrationKcal,
     calories,
     deltaKcal,
     weeklyChangeKg: (deltaKcal * 7) / KCAL_PER_KG_BODY_WEIGHT,

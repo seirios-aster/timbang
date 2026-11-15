@@ -18,6 +18,7 @@ export type IconName =
   | 'dumbbell'
   | 'sun'
   | 'share'
+  | 'more'
   | 'moon';
 
 const PATHS: Record<IconName, ReactNode> = {
@@ -84,6 +85,13 @@ const PATHS: Record<IconName, ReactNode> = {
     <>
       <circle cx="12" cy="12" r="4" />
       <path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2" />
+    </>
+  ),
+  more: (
+    <>
+      <circle cx="5" cy="12" r="1.5" />
+      <circle cx="12" cy="12" r="1.5" />
+      <circle cx="19" cy="12" r="1.5" />
     </>
   ),
   share: (

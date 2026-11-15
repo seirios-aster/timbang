@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { nextWorkout } from '@/domain/training/program';
-import { DAYS, todayIndex, todayIso } from '@/lib/date';
+import { strainReport } from '@/domain/training/progression';
+import { DAYS, fmtShortDate, todayIndex, todayIso } from '@/lib/date';
 import { useProfileStore } from '@/state/profileStore';
 import { useUnits } from '@/state/settingsStore';
 import { useTrainingStore } from '@/state/trainingStore';
@@ -26,7 +27,12 @@ export function TrainingScreen() {
   const beginSession = useTrainingStore((state) => state.beginSession);
   const discardSession = useTrainingStore((state) => state.discardSession);
   const dismissSummary = useTrainingStore((state) => state.dismissSummary);
-  const { program, lifter } = useProgram();
+  const deloadUntil = useTrainingStore((state) => state.deloadUntil);
+  const snoozedUntil = useTrainingStore((state) => state.deloadSnoozedUntil);
+  const startDeload = useTrainingStore((state) => state.startDeload);
+  const endDeload = useTrainingStore((state) => state.endDeload);
+  const snoozeDeload = useTrainingStore((state) => state.snoozeDeload);
+  const { program, lifter, deload } = useProgram();
 
   const [dayIndex, setDayIndex] = useState(todayIndex);
   const [openSlot, setOpenSlot] = useState<number | null>(null);
@@ -74,6 +80,9 @@ export function TrainingScreen() {
     );
   }
 
+  const strain = strainReport(logs, today);
+  const tired = strain.level === 'tired' && !deload && (snoozedUntil === null || snoozedUntil < today);
+
   const workout = program.week[dayIndex] ?? null;
   const upNext = workout ? null : nextWorkout(program, dayIndex);
   const plannedDays = program.week.filter(Boolean).length;
@@ -87,7 +96,34 @@ export function TrainingScreen() {
         </button>
       </div>
 
-      {summary && <SessionSummary summary={summary} unit={unit} onDismiss={dismissSummary} />}
+      {summary && <SessionSummary summary={summary} unit={unit} logs={logs} lifter={lifter} onDismiss={dismissSummary} />}
+
+      {deload && deloadUntil && (
+        <div className={`on-paper ${styles.notice}`} role="status">
+          <p>
+            <strong>Easy week</strong> until {fmtShortDate(deloadUntil)}. Weights are about 10% lighter and each lift has one set
+            fewer. Let your body catch up, then come back stronger.
+          </p>
+          <Button variant="outline" onClick={endDeload}>
+            Back to normal training
+          </Button>
+        </div>
+      )}
+
+      {tired && (
+        <div className={`on-paper ${styles.notice}`} role="status">
+          <p>
+            <strong>You may be run down.</strong> {strain.reasons.join(' ')} A week at lighter weights is how lifters recover
+            and keep progressing.
+          </p>
+          <div className={styles.noticeActions}>
+            <Button onClick={startDeload}>Take an easy week</Button>
+            <Button variant="quiet" onClick={snoozeDeload}>
+              Not now
+            </Button>
+          </div>
+        </div>
+      )}
 
       <header className={styles.split}>
         <h1 className={`display ${styles.splitName}`}>{program.split.name}</h1>

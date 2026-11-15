@@ -5,6 +5,8 @@ import { fmtDecimal, fmtInt, fmtSigned } from '@/lib/format';
 import { fmtBodyChange, fmtWater, proteinUnit, weightUnit } from '@/lib/units';
 import { useUnits } from '@/state/settingsStore';
 import { useMealLogStore } from '@/state/mealLogStore';
+import { useStepsStore } from '@/state/stepsStore';
+import { useCustomFoodsStore } from '@/state/customFoodsStore';
 import { usePlanStore } from '@/state/planStore';
 import { useProfileStore } from '@/state/profileStore';
 import { useProgressStore } from '@/state/progressStore';
@@ -34,6 +36,9 @@ export function TargetScreen({ go }: TargetScreenProps) {
   const clearProgress = useProgressStore((state) => state.clear);
   const clearTraining = useTrainingStore((state) => state.clear);
   const clearMealLog = useMealLogStore((state) => state.clear);
+  const clearSteps = useStepsStore((state) => state.clear);
+  const clearCustomFoods = useCustomFoodsStore((state) => state.clear);
+  const updateProfile = useProfileStore((state) => state.updateProfile);
   const targets = useTargets();
   const [confirmingReset, setConfirmingReset] = useState(false);
   const { system } = useUnits();
@@ -52,6 +57,8 @@ export function TargetScreen({ go }: TargetScreenProps) {
     clearProgress();
     clearTraining();
     clearMealLog();
+    clearSteps();
+    clearCustomFoods();
     resetProfile();
   };
 
@@ -91,6 +98,15 @@ export function TargetScreen({ go }: TargetScreenProps) {
         </dl>
 
         <p className={styles.summary}>{summarize(profile.goal, targets, system)}</p>
+
+        {targets.calibrationKcal !== 0 && (
+          <p className={styles.sub}>
+            Your maintenance includes a {fmtSigned(targets.calibrationKcal)} kcal correction, worked out from your weigh-ins.{' '}
+            <Button variant="quiet" onClick={() => updateProfile({ calorieAdjustment: undefined, calibratedOn: undefined })}>
+              Remove it
+            </Button>
+          </p>
+        )}
 
         {targets.floorApplied && (
           <p className={`on-paper ${styles.notice}`}>
