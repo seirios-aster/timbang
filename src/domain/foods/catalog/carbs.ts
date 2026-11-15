@@ -5,6 +5,9 @@ export const carbs: FoodInput[] = [
     id: 'kanin',
     name: 'Kanin',
     gloss: 'Steamed white rice',
+    source: 'usda',
+    reference:
+      'USDA SR Legacy 168878, rice white long-grain regular enriched cooked: 130 kcal, 2.69 g protein, 28.2 g carbs, 0.28 g fat per 100 g',
     roles: ['carb'],
     slots: ['almusal', 'tanghalian', 'hapunan'],
     unit: 'cup',

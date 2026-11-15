@@ -49,6 +49,11 @@ export function FoodSheet({ day, prefs, selection, onClose }: FoodSheetProps) {
         <p className={styles.gloss}>
           {food.gloss}. One {food.unit} is about {fmtInt(food.grams)} g.
         </p>
+        <p className={styles.source}>
+          {food.source === 'usda'
+            ? 'Numbers checked against USDA FoodData Central.'
+            : 'Numbers are a typical estimate, not lab-measured. Cooking and portions vary.'}
+        </p>
 
         <div className={styles.portion}>
           <button

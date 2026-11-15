@@ -22,6 +22,7 @@ export function defineFood(input: FoodInput): Food {
   return {
     ...input,
     kcal: kcalFromMacros(input.protein, input.carbs, input.fat),
+    source: input.source ?? 'estimate',
     contains: input.contains ?? [],
     portions: input.portions ?? DEFAULT_PORTIONS[input.unit],
   };

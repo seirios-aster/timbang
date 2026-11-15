@@ -59,7 +59,16 @@ export interface Food {
   portions: PortionRange;
   /** Only offered when the person says they use protein powder. */
   needsWhey?: boolean;
+  /**
+   * Where the numbers come from. `usda` means they were checked against USDA FoodData Central.
+   * `estimate`, the default, means a typical value for home or carinderia cooking.
+   */
+  source?: FoodSource;
+  /** The record the numbers were checked against, when `source` is `usda`. */
+  reference?: string;
 }
+
+export type FoodSource = 'usda' | 'estimate';
 
 /** What goes into the catalog files. Calories and common defaults are filled in by `defineFood`. */
 export type FoodInput = Omit<Food, 'kcal' | 'contains' | 'portions'> & {

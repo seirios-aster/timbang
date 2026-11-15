@@ -158,3 +158,10 @@
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
+
+.source {
+  margin-top: calc(var(--s2) * -1);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--ink-3);
+}
