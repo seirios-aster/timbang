@@ -37,6 +37,8 @@ export interface Session {
   pausedAt: number | null;
   /** Total time spent paused so far. */
   pausedMs: number;
+  /** Active session time, in ms, when the current set began. The set clock counts from here. */
+  setStartMs: number;
   /** Sets completed so far, by exercise slot. */
   sets: Record<number, SetEntry[]>;
 }
@@ -81,6 +83,7 @@ export function startSession(workout: Workout, dayIndex: number, date: string, n
     restEndsAt: null,
     pausedAt: null,
     pausedMs: 0,
+    setStartMs: 0,
     sets: {},
   };
 }
@@ -114,8 +117,8 @@ export function completeSet(session: Session, workout: Workout, entry: SetEntry,
 }
 
 /** Ends the rest, whether the timer ran out or the person skipped it. */
-export function endRest(session: Session): Session {
-  return { ...session, phase: 'work', restEndsAt: null };
+export function endRest(session: Session, now: number): Session {
+  return { ...session, phase: 'work', restEndsAt: null, setStartMs: elapsed(session, now) };
 }
 
 /** Adds time to the current rest. A negative amount shortens it. */
@@ -151,19 +154,24 @@ export function elapsed(session: Session, now: number): number {
   return (session.pausedAt ?? now) - session.startedAt - session.pausedMs;
 }
 
+/** Time on the current set, not counting pauses. */
+export function setElapsed(session: Session, now: number): number {
+  return Math.max(0, elapsed(session, now) - (session.setStartMs ?? 0));
+}
+
 /** Switches to another exercise, for when the equipment is taken. Any running rest is dropped. */
-export function jumpTo(session: Session, workout: Workout, slot: number): Session {
+export function jumpTo(session: Session, workout: Workout, slot: number, now: number): Session {
   if (!plannedFor(workout, slot)) return session;
-  return { ...session, slot, phase: 'work', restEndsAt: null };
+  return { ...session, slot, phase: 'work', restEndsAt: null, setStartMs: elapsed(session, now) };
 }
 
 /** Moves past the current exercise without finishing its sets. Returns null when nothing else is left. */
-export function skipExercise(session: Session, workout: Workout): Session | null {
+export function skipExercise(session: Session, workout: Workout, now: number): Session | null {
   const others = workout.exercises.filter(
     (planned) => planned.slot !== session.slot && setsDoneFor(session, planned.slot) < planned.sets,
   );
   const next = others.find((planned) => planned.slot > session.slot) ?? others[0];
-  return next ? jumpTo(session, workout, next.slot) : null;
+  return next ? jumpTo(session, workout, next.slot, now) : null;
 }
 
 /** Clears the sets logged for a slot. Used when its exercise is swapped for another mid-session. */

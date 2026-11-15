@@ -57,7 +57,13 @@ export function videoSearchUrl(exercise: Exercise): string {
   return `https://www.youtube.com/results?search_query=${encodeURIComponent(`how to ${exercise.name} proper form`)}`;
 }
 
-/** Minutes and seconds, such as "2:05". */
+/** A stopwatch reading, rounded down, such as "0:07". For counting up. */
+export function fmtStopwatch(ms: number): string {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  return `${Math.floor(totalSeconds / 60)}:${String(totalSeconds % 60).padStart(2, '0')}`;
+}
+
+/** Minutes and seconds, such as "2:05". For counting down. */
 export function fmtClock(ms: number): string {
   const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
   const minutes = Math.floor(totalSeconds / 60);

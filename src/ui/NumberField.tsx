@@ -13,7 +13,9 @@ interface NumberFieldProps {
   /** Decimal places shown and kept. */
   digits?: number;
   unit?: string;
-  size?: 'md' | 'lg';
+  /** Leave the unit out of the box, for tight layouts where the label already names it. */
+  hideUnit?: boolean;
+  size?: 'sm' | 'md' | 'lg';
 }
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
@@ -29,6 +31,7 @@ export function NumberField({
   step = 1,
   digits = 0,
   unit,
+  hideUnit = false,
   size = 'lg',
 }: NumberFieldProps) {
   const format = (n: number) => n.toFixed(digits);
@@ -78,7 +81,7 @@ export function NumberField({
             }}
             onFocus={(event) => event.currentTarget.select()}
           />
-          {unit && <span className={styles.unit}>{unit}</span>}
+          {unit && !hideUnit && <span className={styles.unit}>{unit}</span>}
         </div>
         <button
           type="button"

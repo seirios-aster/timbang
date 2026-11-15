@@ -88,15 +88,15 @@ describe('recording effort in a session', () => {
 
   it('saves the effort of each set into the log', () => {
     let session = startSession(workout, 0, '2026-11-16', 0);
-    session = endRest(completeSet(session, workout, { weightKg: 40, reps: 8, rir: 3 }, 0));
-    session = endRest(completeSet(session, workout, { weightKg: 40, reps: 8, rir: 1 }, 0));
+    session = endRest(completeSet(session, workout, { weightKg: 40, reps: 8, rir: 3 }, 0), 0);
+    session = endRest(completeSet(session, workout, { weightKg: 40, reps: 8, rir: 1 }, 0), 0);
     const logs = sessionLogs(session, workout);
     expect(logs[0]).toMatchObject({ exerciseId: first.exerciseId, reps: [8, 8], rir: [3, 1] });
   });
 
   it('leaves effort out when none was given', () => {
     let session = startSession(workout, 0, '2026-11-16', 0);
-    session = endRest(completeSet(session, workout, { weightKg: 40, reps: 8 }, 0));
+    session = endRest(completeSet(session, workout, { weightKg: 40, reps: 8 }, 0), 0);
     expect(sessionLogs(session, workout)[0]).not.toHaveProperty('rir');
   });
 

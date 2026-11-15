@@ -26,7 +26,7 @@ Pushing to `main` runs the tests, builds, and deploys to GitHub Pages (`.github/
 | Today | Home. Today's workout, meals, steps and weigh-in in one place. |
 | Target | Calorie and macro targets for cutting, maintaining or building. Optional fine-tuning of pace, protein and body fat. Settings: units, install. |
 | Meals | Three ways to handle food, chosen in setup and changeable any time: **suggested** (a week of Filipino meals that hit the target, with swaps), **my own plan** (enter meals once, from the food list or your own numbers), or **just track** (no plan, log food against the target). On the day, meals are marked eaten or skipped and off-plan food is added. |
-| Training | A weekly split chosen from the number of lifting days, with exercises for a gym, dumbbells or no equipment. Each lift has sets, reps, rest, a suggested weight, a moving stick figure and a video link. Any lift can be changed for a suggestion or anything in the catalog. A guided session runs set by set. |
+| Training | A weekly split chosen from the number of lifting days, with exercises for a gym, dumbbells or no equipment. Each lift has sets, reps, rest, a suggested weight, a moving stick figure and a video link. Any lift can be changed for a suggestion or anything in the catalog. A guided session runs set by set, with a set clock, a big rest countdown, and a hold timer for planks and wall sits. |
 | Progress | Weigh-in log, a smoothed trend, and a pace check against the plan, with an offer to correct the calorie estimate. A Lifts view shows records, estimated one-rep max and history per lift. |
 
 Also: dark (default) and light themes, metric or imperial units, steps tracking, and the app can be added to a

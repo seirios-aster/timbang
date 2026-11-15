@@ -7,6 +7,8 @@ interface PlateStackProps {
   /** Total weight on the bar, in the gym's unit. */
   total: number;
   unit: WeightUnit;
+  /** Draw the bar. When false, only the sentence is shown, for screens that are short on room. */
+  diagram?: boolean;
 }
 
 interface PlateLook {
@@ -40,7 +42,7 @@ const PLATE_LOOK: Record<WeightUnit, Record<number, PlateLook>> = {
  * Shows which plates go on each side of the bar for a given total weight.
  * Answers the question new lifters ask at every rack.
  */
-export function PlateStack({ total, unit }: PlateStackProps) {
+export function PlateStack({ total, unit, diagram = true }: PlateStackProps) {
   const { bar, perSide, leftover } = platesPerSide(total, unit);
 
   const summary =
@@ -50,6 +52,7 @@ export function PlateStack({ total, unit }: PlateStackProps) {
 
   return (
     <figure className={styles.figure}>
+      {diagram && (
       <div className={styles.bar} aria-hidden="true">
         <span className={styles.shaft} />
         <span className={styles.collar} />
@@ -65,6 +68,7 @@ export function PlateStack({ total, unit }: PlateStackProps) {
         })}
         <span className={styles.sleeve} />
       </div>
+      )}
       <figcaption className={styles.caption}>
         {summary}
         {leftover > 0 && `. ${fmtKg(leftover)} ${unit} cannot be made with standard plates.`}

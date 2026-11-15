@@ -11,6 +11,7 @@ import {
   pause,
   restRemaining,
   resume,
+  setElapsed,
   sessionLogs,
   skipExercise,
   startSession,
@@ -41,14 +42,14 @@ describe('a session', () => {
 
   it('moves to the next exercise after the last set', () => {
     let session = begin();
-    for (let i = 0; i < first.sets; i += 1) session = endRest(completeSet(session, workout, set(), T0));
+    for (let i = 0; i < first.sets; i += 1) session = endRest(completeSet(session, workout, set(), T0), T0);
     expect(session.slot).toBe(second.slot);
     expect(session.sets[first.slot]).toHaveLength(first.sets);
   });
 
   it('lets the rest be skipped, extended or shortened', () => {
     const resting = completeSet(begin(), workout, set(), T0);
-    expect(endRest(resting)).toMatchObject({ phase: 'work', restEndsAt: null });
+    expect(endRest(resting, T0)).toMatchObject({ phase: 'work', restEndsAt: null });
     expect(restRemaining(extendRest(resting, 30 * SECOND, T0), T0)).toBe((first.restSec + 30) * SECOND);
     expect(restRemaining(extendRest(resting, -9999 * SECOND, T0), T0)).toBe(0);
   });
@@ -79,25 +80,25 @@ describe('pausing', () => {
 
 describe('changing the order', () => {
   it('jumps to another exercise when equipment is taken, and comes back later', () => {
-    let session = jumpTo(begin(), workout, second.slot);
+    let session = jumpTo(begin(), workout, second.slot, T0);
     expect(session.slot).toBe(second.slot);
-    for (let i = 0; i < second.sets; i += 1) session = endRest(completeSet(session, workout, set(), T0));
+    for (let i = 0; i < second.sets; i += 1) session = endRest(completeSet(session, workout, set(), T0), T0);
     // The next unfinished lift after the second one, not back to the first yet.
     expect(session.slot).toBe(workout.exercises[2]!.slot);
     expect(isComplete(session, workout)).toBe(false);
   });
 
   it('skips an exercise, and reports when nothing else is left', () => {
-    expect(skipExercise(begin(), workout)!.slot).toBe(second.slot);
+    expect(skipExercise(begin(), workout, T0)!.slot).toBe(second.slot);
 
     let session = begin();
     for (const planned of workout.exercises.slice(1)) {
-      session = jumpTo(session, workout, planned.slot);
-      for (let i = 0; i < planned.sets; i += 1) session = endRest(completeSet(session, workout, set(), T0));
+      session = jumpTo(session, workout, planned.slot, T0);
+      for (let i = 0; i < planned.sets; i += 1) session = endRest(completeSet(session, workout, set(), T0), T0);
     }
     // Only the first lift is unfinished now, and it is the current one.
     expect(session.slot).toBe(first.slot);
-    expect(skipExercise(session, workout)).toBeNull();
+    expect(skipExercise(session, workout, T0)).toBeNull();
   });
 
   it('forgets the sets of an exercise that was swapped out', () => {
@@ -112,7 +113,7 @@ describe('finishing', () => {
     for (const planned of workout.exercises) {
       for (let i = 0; i < planned.sets; i += 1) {
         expect(isComplete(session, workout)).toBe(false);
-        session = endRest(completeSet(session, workout, set(), T0));
+        session = endRest(completeSet(session, workout, set(), T0), T0);
       }
     }
     expect(isComplete(session, workout)).toBe(true);
@@ -121,9 +122,9 @@ describe('finishing', () => {
 
   it('logs only the exercises that were actually done', () => {
     let session = begin();
-    session = endRest(completeSet(session, workout, set(10, 40), T0));
-    session = endRest(completeSet(session, workout, set(9, 40), T0));
-    session = endRest(completeSet(session, workout, set(7, 37.5), T0));
+    session = endRest(completeSet(session, workout, set(10, 40), T0), T0);
+    session = endRest(completeSet(session, workout, set(9, 40), T0), T0);
+    session = endRest(completeSet(session, workout, set(7, 37.5), T0), T0);
 
     const logs = sessionLogs(session, workout);
     expect(logs).toEqual([{ exerciseId: first.exerciseId, date: '2026-11-16', weightKg: 40, reps: [10, 9, 7] }]);
@@ -139,5 +140,35 @@ describe('finishing', () => {
     expect(summary).toMatchObject({ workoutName: 'Upper A', setsDone: 1, liftsDone: 1, liftsPlanned: 6 });
     expect(summary.durationMs).toBe(160 * SECOND);
     expect(summary.setsPlanned).toBe(workout.exercises.reduce((total, planned) => total + planned.sets, 0));
+  });
+});
+
+describe('the set clock', () => {
+  it('counts from when the set began, and not through a pause', () => {
+    let session = startSession(workout, 0, '2026-11-16', T0);
+    expect(setElapsed(session, T0 + 12 * SECOND)).toBe(12 * SECOND);
+
+    // Pause for 30 seconds in the middle of the set.
+    session = pause(session, T0 + 20 * SECOND);
+    expect(setElapsed(session, T0 + 50 * SECOND)).toBe(20 * SECOND);
+    session = resume(session, T0 + 50 * SECOND);
+    expect(setElapsed(session, T0 + 60 * SECOND)).toBe(30 * SECOND);
+  });
+
+  it('starts again at zero when the rest ends', () => {
+    let session = completeSet(startSession(workout, 0, '2026-11-16', T0), workout, set(), T0 + 40 * SECOND);
+    session = endRest(session, T0 + 40 * SECOND + first.restSec * SECOND);
+    expect(setElapsed(session, T0 + 40 * SECOND + first.restSec * SECOND)).toBe(0);
+    expect(setElapsed(session, T0 + 45 * SECOND + first.restSec * SECOND)).toBe(5 * SECOND);
+  });
+
+  it('starts again at zero when switching to another lift', () => {
+    const session = jumpTo(startSession(workout, 0, '2026-11-16', T0), workout, second.slot, T0 + 90 * SECOND);
+    expect(setElapsed(session, T0 + 100 * SECOND)).toBe(10 * SECOND);
+  });
+
+  it('copes with a session saved before the set clock existed', () => {
+    const { setStartMs: _dropped, ...older } = startSession(workout, 0, '2026-11-16', T0);
+    expect(setElapsed(older as ReturnType<typeof startSession>, T0 + 5 * SECOND)).toBe(5 * SECOND);
   });
 });

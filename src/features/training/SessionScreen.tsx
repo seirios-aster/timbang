@@ -15,6 +15,7 @@ import {
   pause,
   restRemaining,
   resume,
+  setElapsed,
   skipExercise,
   summarize,
   type Session,
@@ -29,7 +30,7 @@ import { Icon } from '@/ui/Icon';
 import { NumberField } from '@/ui/NumberField';
 import { Sheet } from '@/ui/Sheet';
 import { Stamp } from '@/ui/Stamp';
-import { fmtClock, fmtLoad, fmtRange, loadUnit } from './copy';
+import { fmtClock, fmtLoad, fmtRange, fmtStopwatch, loadUnit } from './copy';
 import { ExerciseGuide } from './ExerciseGuide';
 import { ExercisePicker } from './ExercisePicker';
 import { PlateStack } from './PlateStack';
@@ -57,14 +58,139 @@ interface WorkPanelProps {
   advice: LoadAdvice;
   previous?: ExerciseLog;
   unit: WeightUnit;
+  /** Time on this set so far, not counting pauses. */
+  setMs: number;
+  /** Active session time. Holds are timed against it, so they stop when the session is paused. */
+  activeMs: number;
   onDone: (entry: { weightKg: number | null; reps: number; rir: number }) => void;
 }
 
+/** The four effort buttons. Tapping one logs the set, so rating each set costs no extra taps. */
+function EffortButtons({ onPick }: { onPick: (rir: number) => void }) {
+  return (
+    <div className={styles.effort} role="group" aria-label="Log this set. How many more reps could you have done?">
+      <p className={styles.effortAsk}>Set done. How many more could you have done?</p>
+      <div className={styles.effortRow}>
+        {EFFORTS.map((effort) => (
+          <button key={effort.rir} type="button" className={effort.rir === 2 ? styles.effortMain : styles.effortButton} onClick={() => onPick(effort.rir)}>
+            <span className={styles.effortLabel}>{effort.label}</span>
+            <span className={styles.effortDetail}>{effort.detail}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+type Hold =
+  | { phase: 'idle' }
+  | { phase: 'ready'; at: number }
+  | { phase: 'running'; at: number }
+  | { phase: 'done'; seconds: number };
+
+/** A few seconds to get into position before the clock starts. */
+const READY_MS = 3000;
+
 /**
- * The set in front of the person: weight, reps, and then how it felt. Tapping one of the four
- * effort buttons logs the set, so rating each set costs no extra taps.
+ * A timed hold, like a plank. Start, a short get-ready count, then the clock counts up toward the
+ * target and beeps when it is reached. Stop, and the seconds are filled in. They can still be changed.
  */
-function WorkPanel({ exercise, planned, done, advice, previous, unit, onDone }: WorkPanelProps) {
+function HoldPanel({ planned, advice, activeMs, onDone }: Pick<WorkPanelProps, 'planned' | 'advice' | 'activeMs' | 'onDone'>) {
+  const target = advice.targetReps ?? planned.repsMin;
+  const [hold, setHold] = useState<Hold>({ phase: 'idle' });
+  const [seconds, setSeconds] = useState(target);
+  const beeped = useRef(false);
+
+  // Get-ready becomes the hold itself once the count is over.
+  useEffect(() => {
+    if (hold.phase === 'ready' && activeMs - hold.at >= READY_MS) setHold({ phase: 'running', at: hold.at + READY_MS });
+  }, [activeMs, hold]);
+
+  const held = hold.phase === 'running' ? Math.max(0, Math.floor((activeMs - hold.at) / 1000)) : 0;
+  const reached = hold.phase === 'running' && held >= target;
+
+  useEffect(() => {
+    if (reached && !beeped.current) {
+      beeped.current = true;
+      signalTimerDone();
+    }
+  }, [reached]);
+
+  const stop = () => {
+    setSeconds(Math.max(1, held));
+    setHold({ phase: 'done', seconds: held });
+  };
+
+  if (hold.phase === 'done') {
+    return (
+      <div className={styles.holdWork}>
+        <div className={styles.holdClock}>
+          <div className={styles.setClock}>
+            <p className="eyebrow">You held</p>
+            <p className={styles.setTime}>{fmtStopwatch(seconds * 1000)}</p>
+          </div>
+        </div>
+        <div className={styles.holdActions}>
+          <NumberField id="session-reps" label="Seconds you held" unit="sec" size="md" step={5} min={1} max={600} value={seconds} onChange={setSeconds} />
+          <EffortButtons onPick={(rir) => onDone({ weightKg: null, reps: seconds, rir })} />
+          <Button variant="quiet" onClick={() => { beeped.current = false; setHold({ phase: 'idle' }); }}>
+            Hold again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const readyLeft = hold.phase === 'ready' ? Math.max(1, Math.ceil((READY_MS - (activeMs - hold.at)) / 1000)) : 0;
+
+  return (
+    <div className={styles.holdWork}>
+      <div className={styles.holdClock}>
+        <p className="eyebrow">{hold.phase === 'ready' ? 'Get ready' : hold.phase === 'running' ? 'Hold' : `Hold for ${target} sec`}</p>
+        <p className={reached ? styles.setTimeReached : styles.setTime} role="timer">
+          {hold.phase === 'ready' ? readyLeft : fmtStopwatch(held * 1000)}
+        </p>
+        {hold.phase === 'running' && (
+          <>
+            <div className={styles.holdBar} aria-hidden="true">
+              <span style={{ width: `${Math.min(100, (held / target) * 100)}%` }} />
+            </div>
+            <p className={styles.setNote}>{reached ? 'Target reached. Keep going, or stop when you need to.' : `Aim for ${target} seconds.`}</p>
+          </>
+        )}
+      </div>
+
+      <div className={styles.holdActions}>
+      {hold.phase === 'idle' && (
+        <>
+          <Button size="lg" block onClick={() => { beeped.current = false; setHold({ phase: 'ready', at: activeMs }); }}>
+            Start hold
+          </Button>
+          <Button variant="quiet" onClick={() => setHold({ phase: 'done', seconds: target })}>
+            Enter the seconds myself
+          </Button>
+        </>
+      )}
+      {hold.phase === 'ready' && (
+        <Button variant="outline" size="lg" block onClick={() => setHold({ phase: 'idle' })}>
+          Cancel
+        </Button>
+      )}
+      {hold.phase === 'running' && (
+        <Button size="lg" block onClick={stop}>
+          Stop
+        </Button>
+      )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The set in front of the person: a clock counting up from when it began, then weight and reps side by
+ * side, then how it felt. Tapping an effort button logs the set.
+ */
+function WorkPanel({ exercise, planned, done, advice, previous, unit, setMs, activeMs, onDone }: WorkPanelProps) {
   const weighted = exercise.load !== 'bodyweight';
   const lastSet = done[done.length - 1];
   const middle = Math.round((planned.repsMin + planned.repsMax) / 2);
@@ -73,15 +199,25 @@ function WorkPanel({ exercise, planned, done, advice, previous, unit, onDone }: 
   const [weight, setWeight] = useState(() => displayWeight(lastSet?.weightKg ?? advice.weightKg ?? 0, unit));
   const [reps, setReps] = useState(lastSet?.reps ?? advice.targetReps ?? previous?.reps[done.length] ?? middle);
 
+  if (exercise.timed) return <HoldPanel planned={planned} advice={advice} activeMs={activeMs} onDone={onDone} />;
+
   return (
     <div className={styles.work}>
-      <div className={styles.inputs}>
+      <div className={styles.setClock}>
+        <p className="eyebrow">Set time</p>
+        <p className={styles.setTime} role="timer" aria-live="off">
+          {fmtStopwatch(setMs)}
+        </p>
+      </div>
+
+      <div className={weighted ? styles.inputs : styles.inputsOne}>
         {weighted && (
           <NumberField
             id="session-weight"
             label={`Weight (${loadUnit(exercise, unit)})`}
             unit={unit}
-            size="md"
+            hideUnit
+            size="sm"
             step={UNIT_SYSTEMS[unit].inputStep[exercise.load as Exclude<Exercise['load'], 'bodyweight'>]}
             digits={1}
             min={0}
@@ -90,36 +226,11 @@ function WorkPanel({ exercise, planned, done, advice, previous, unit, onDone }: 
             onChange={setWeight}
           />
         )}
-        <NumberField
-          id="session-reps"
-          label={exercise.timed ? 'Seconds you held' : 'Reps you got'}
-          unit={exercise.timed ? 'sec' : 'reps'}
-          size="md"
-          step={exercise.timed ? 5 : 1}
-          min={0}
-          max={exercise.timed ? 600 : 100}
-          value={reps}
-          onChange={setReps}
-        />
+        <NumberField id="session-reps" label="Reps you got" unit="reps" hideUnit size={weighted ? 'sm' : 'md'} step={1} min={0} max={100} value={reps} onChange={setReps} />
       </div>
-      {weighted && exercise.load === 'barbell' && <PlateStack total={weight} unit={unit} />}
+      {weighted && exercise.load === 'barbell' && <PlateStack total={weight} unit={unit} diagram={false} />}
 
-      <div className={styles.effort} role="group" aria-label="Log this set. How many more reps could you have done?">
-        <p className={styles.effortAsk}>Set done. How many more could you have done?</p>
-        <div className={styles.effortRow}>
-          {EFFORTS.map((effort) => (
-            <button
-              key={effort.rir}
-              type="button"
-              className={effort.rir === 2 ? styles.effortMain : styles.effortButton}
-              onClick={() => onDone({ weightKg: weighted ? toKg(weight, unit) : null, reps, rir: effort.rir })}
-            >
-              <span className={styles.effortLabel}>{effort.label}</span>
-              <span className={styles.effortDetail}>{effort.detail}</span>
-            </button>
-          ))}
-        </div>
-      </div>
+      <EffortButtons onPick={(rir) => onDone({ weightKg: weighted ? toKg(weight, unit) : null, reps, rir })} />
     </div>
   );
 }
@@ -158,7 +269,8 @@ export function SessionScreen({ workout, session, logs, lifter, equipment, unit 
   useEffect(() => {
     if (resting && !paused && remaining <= 0) {
       signalTimerDone();
-      update(endRest);
+      // The set clock starts at the moment the rest ended, not when this check happened to run.
+      update((current) => endRest(current, current.restEndsAt ?? Date.now()));
     }
   }, [resting, paused, remaining, update]);
 
@@ -185,7 +297,7 @@ export function SessionScreen({ workout, session, logs, lifter, equipment, unit 
   };
 
   const skip = () => {
-    const next = skipExercise(session, workout);
+    const next = skipExercise(session, workout, Date.now());
     if (next) {
       update(() => next);
       closeSheet();
@@ -247,7 +359,7 @@ export function SessionScreen({ workout, session, logs, lifter, equipment, unit 
               <Button variant="outline" onClick={() => update((c) => extendRest(c, 30 * SECOND, Date.now()))}>
                 +30
               </Button>
-              <Button size="lg" onClick={() => update(endRest)}>
+              <Button size="lg" onClick={() => update((current) => endRest(current, Date.now()))}>
                 Skip rest
               </Button>
             </div>
@@ -261,6 +373,8 @@ export function SessionScreen({ workout, session, logs, lifter, equipment, unit 
             advice={advice}
             previous={previous}
             unit={unit}
+            setMs={setElapsed(session, now)}
+            activeMs={elapsed(session, now)}
             onDone={(entry) => update((current) => completeSet(current, workout, entry, Date.now()))}
           />
         )}
@@ -316,7 +430,7 @@ export function SessionScreen({ workout, session, logs, lifter, equipment, unit 
                       className={styles.liftRow}
                       aria-current={current ? 'step' : undefined}
                       onClick={() => {
-                        update((s) => jumpTo(s, workout, lift.slot));
+                        update((s) => jumpTo(s, workout, lift.slot, Date.now()));
                         closeSheet();
                       }}
                     >
@@ -349,7 +463,7 @@ export function SessionScreen({ workout, session, logs, lifter, equipment, unit 
             equipment={equipment}
             onPick={(exerciseId) => {
               swap(swapKey(workout.id, planned.slot), exerciseId);
-              update((current) => jumpTo(clearSlot(current, planned.slot), workout, planned.slot));
+              update((current) => jumpTo(clearSlot(current, planned.slot), workout, planned.slot, Date.now()));
               closeSheet();
             }}
           />

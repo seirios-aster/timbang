@@ -95,3 +95,16 @@
   color: var(--ink-2);
   min-width: 2.5ch;
 }
+
+/* Compact, for two fields side by side on a narrow phone. */
+.sm .input {
+  font-size: 1.75rem;
+}
+
+.sm .step {
+  width: 2.5rem;
+}
+
+.sm .value {
+  padding-inline: var(--s1);
+}

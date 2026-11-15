@@ -99,9 +99,82 @@
   margin-top: auto;
 }
 
+.setClock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+
+/* The set clock counts up. It is as big as the rest countdown can be while leaving room for the inputs below. */
+.setTime,
+.setTimeReached {
+  font-family: var(--font-display);
+  /* Big, but never so tall that it pushes the buttons off a short screen. */
+  font-size: clamp(4.5rem, min(28vw, 14dvh), 7.5rem);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  line-height: 0.82;
+}
+
+.setTimeReached {
+  color: var(--green);
+}
+
+.holdWork {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--s4);
+}
+
+.holdClock {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--s1);
+}
+
+.holdActions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--s3);
+}
+
+.holdActions > button:last-child:not(:only-child) {
+  align-self: center;
+}
+
+.setNote {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}
+
+.holdBar {
+  height: 0.75rem;
+  margin-top: var(--s2);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius);
+}
+
+.holdBar span {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+  transition: width 250ms linear;
+}
+
+/* Weight and reps share a row, so the clock does not push the buttons off the screen. */
 .inputs {
   display: grid;
-  gap: var(--s3);
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s2);
+}
+
+.inputsOne {
+  display: grid;
 }
 
 .effort {
