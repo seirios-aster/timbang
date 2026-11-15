@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FOODS } from '@/domain/foods/catalog';
+import { allFoods } from '@/domain/foods/catalog';
 import { kcalFromMacros } from '@/domain/foods/defineFood';
 import type { Food } from '@/domain/foods/types';
 import { foodTotals } from '@/domain/mealplan/totals';
@@ -11,22 +11,48 @@ import { NumberField } from '@/ui/NumberField';
 import { Sheet } from '@/ui/Sheet';
 import styles from './AddFoodSheet.module.css';
 
+/** What the person picked: a food from the list with a portion, or numbers they typed. */
+export type AddedFood =
+  | { kind: 'food'; food: Food; portions: number }
+  | { kind: 'manual'; name: string; totals: Macros };
+
+/** A name and the macros, for logging an entry as food eaten. */
+export function describeAdded(entry: AddedFood): { name: string; totals: Macros } {
+  if (entry.kind === 'manual') return { name: entry.name, totals: entry.totals };
+  return {
+    name: `${entry.food.name}, ${fmtPortion(entry.portions, entry.food.unit)}`,
+    totals: foodTotals(entry.food, entry.portions),
+  };
+}
+
 interface AddFoodSheetProps {
   open: boolean;
   onClose: () => void;
-  onAdd: (name: string, totals: Macros) => void;
+  eyebrow?: string;
+  title?: string;
+  /**
+   * `eaten` is for logging, where typed numbers are for the whole amount eaten.
+   * `serving` is for building a plan, where they are for one serving that gets saved.
+   */
+  numbers?: 'eaten' | 'serving';
+  /** When given, the person also picks which meal this belongs to. */
+  mealChoices?: readonly string[];
+  defaultMeal?: string;
+  onAdd: (entry: AddedFood, meal?: string) => void;
 }
 
 function searchFoods(query: string): Food[] {
   const words = query.toLowerCase().split(/\s+/).filter(Boolean);
-  return FOODS.filter((food) => {
+  const matches = allFoods().filter((food) => {
     const text = `${food.name} ${food.gloss}`.toLowerCase();
     return words.every((word) => text.includes(word));
   });
+  // The person's own foods come first, since they are the ones they will look for.
+  return [...matches.filter((food) => food.id.startsWith('custom-')), ...matches.filter((food) => !food.id.startsWith('custom-'))];
 }
 
-/** Pick a food from the catalog and say how much of it was eaten. */
-function FromCatalog({ onAdd }: Pick<AddFoodSheetProps, 'onAdd'>) {
+/** Pick a food from the list and say how much of it. */
+function FromList({ onPick }: { onPick: (food: Food, portions: number) => void }) {
   const [query, setQuery] = useState('');
   const [food, setFood] = useState<Food | null>(null);
   const [portions, setPortions] = useState(1);
@@ -46,13 +72,7 @@ function FromCatalog({ onAdd }: Pick<AddFoodSheetProps, 'onAdd'>) {
           </Button>
         </div>
         <div className={styles.portion}>
-          <button
-            type="button"
-            className={styles.step}
-            onClick={() => setPortions(Math.max(min, portions - step))}
-            disabled={portions <= min}
-            aria-label="Less"
-          >
+          <button type="button" className={styles.step} onClick={() => setPortions(Math.max(min, portions - step))} disabled={portions <= min} aria-label="Less">
             <Icon name="minus" />
           </button>
           <p className={styles.amount} aria-live="polite">
@@ -65,8 +85,8 @@ function FromCatalog({ onAdd }: Pick<AddFoodSheetProps, 'onAdd'>) {
         <p className={`mono ${styles.macros}`}>
           {fmtInt(totals.kcal)} kcal · P {fmtInt(totals.protein)} · C {fmtInt(totals.carbs)} · F {fmtInt(totals.fat)}
         </p>
-        <Button size="lg" block onClick={() => onAdd(`${food.name}, ${fmtPortion(portions, food.unit)}`, totals)}>
-          Add to today <Icon name="check" />
+        <Button size="lg" block onClick={() => onPick(food, portions)}>
+          Add <Icon name="check" />
         </Button>
       </div>
     );
@@ -102,7 +122,8 @@ function FromCatalog({ onAdd }: Pick<AddFoodSheetProps, 'onAdd'>) {
                 <span className={styles.optionName}>{option.name}</span>
                 <span className={`mono ${styles.optionKcal}`}>{fmtInt(option.kcal)} kcal</span>
                 <span className={styles.optionDetail}>
-                  {option.gloss} · per {option.unit}
+                  {option.gloss}
+                  {option.id.startsWith('custom-') ? ' · per serving' : ` · per ${option.unit}`}
                 </span>
               </button>
             </li>
@@ -115,8 +136,8 @@ function FromCatalog({ onAdd }: Pick<AddFoodSheetProps, 'onAdd'>) {
   );
 }
 
-/** Type in a food that is not in the catalog, from a label or a menu. */
-function ByHand({ onAdd }: Pick<AddFoodSheetProps, 'onAdd'>) {
+/** Type in a food that is not in the list, from a label, a menu or a recipe. */
+function ByHand({ scope, onAdd }: { scope: 'eaten' | 'serving'; onAdd: (name: string, totals: Macros) => void }) {
   const [name, setName] = useState('');
   const [protein, setProtein] = useState(0);
   const [carbs, setCarbs] = useState(0);
@@ -130,16 +151,16 @@ function ByHand({ onAdd }: Pick<AddFoodSheetProps, 'onAdd'>) {
       className={styles.group}
       onSubmit={(event) => {
         event.preventDefault();
-        if (kcal > 0) onAdd(name.trim() || 'Other food', { kcal, protein, carbs, fat });
+        if (kcal > 0) onAdd(name.trim() || (scope === 'serving' ? 'My food' : 'Other food'), { kcal, protein, carbs, fat });
       }}
     >
       <label className={styles.field} htmlFor="hand-name">
-        <span className="eyebrow">What was it?</span>
+        <span className="eyebrow">{scope === 'serving' ? 'Name of the food' : 'What was it?'}</span>
         <input
           id="hand-name"
           className={styles.search}
           type="text"
-          placeholder="Milk tea, siomai rice…"
+          placeholder={scope === 'serving' ? "Nanay's adobo, protein shake…" : 'Milk tea, siomai rice…'}
           autoComplete="off"
           value={name}
           onChange={(event) => setName(event.target.value)}
@@ -152,28 +173,57 @@ function ByHand({ onAdd }: Pick<AddFoodSheetProps, 'onAdd'>) {
         <NumberField id="hand-fat" label="Fat" unit="g" size="md" min={0} max={300} value={fat} onChange={setFat} />
       </div>
       <p className={styles.hint}>
-        Use the numbers on the label or the menu. If you only know the calories, enter just those. Filling in the
-        grams works out the calories for you.
+        {scope === 'serving'
+          ? 'Enter the numbers for one serving. The food is saved, so you can add it again later. '
+          : 'Use the numbers on the label or the menu. '}
+        If you only know the calories, enter just those. Filling in the grams works out the calories for you.
       </p>
       <Button type="submit" size="lg" block disabled={kcal <= 0}>
-        Add to today <Icon name="check" />
+        {scope === 'serving' ? 'Save and add' : 'Add'} <Icon name="check" />
       </Button>
     </form>
   );
 }
 
-/** For food eaten outside the plan, so the day's numbers stay true. */
-export function AddFoodSheet({ open, onClose, onAdd }: AddFoodSheetProps) {
+/** Adds food, from the food list or typed in. Used to log food eaten and to build a plan. */
+export function AddFoodSheet({
+  open,
+  onClose,
+  eyebrow = 'Outside the plan',
+  title = 'Add what you ate',
+  numbers = 'eaten',
+  mealChoices,
+  defaultMeal,
+  onAdd,
+}: AddFoodSheetProps) {
   const [byHand, setByHand] = useState(false);
-  const add = (name: string, totals: Macros) => {
-    onAdd(name, totals);
+  const [meal, setMeal] = useState(defaultMeal ?? mealChoices?.[0]);
+
+  const finish = (entry: AddedFood) => {
+    onAdd(entry, mealChoices ? meal : undefined);
     onClose();
   };
 
   return (
-    <Sheet open={open} onClose={onClose} eyebrow="Outside the plan" title="Add what you ate">
+    <Sheet open={open} onClose={onClose} eyebrow={eyebrow} title={title}>
       <div className={styles.body}>
-        {byHand ? <ByHand onAdd={add} /> : <FromCatalog key={String(open)} onAdd={add} />}
+        {mealChoices && (
+          <div className={styles.group} role="group" aria-label="Which meal">
+            <p className="eyebrow">Which meal</p>
+            <div className={styles.mealChips}>
+              {mealChoices.map((choice) => (
+                <button key={choice} type="button" className={styles.mealChip} aria-pressed={meal === choice} onClick={() => setMeal(choice)}>
+                  {choice}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {byHand ? (
+          <ByHand scope={numbers} onAdd={(name, totals) => finish({ kind: 'manual', name, totals })} />
+        ) : (
+          <FromList key={String(open)} onPick={(food, portions) => finish({ kind: 'food', food, portions })} />
+        )}
         <Button variant="quiet" onClick={() => setByHand(!byHand)}>
           {byHand ? 'Pick from the food list' : 'Not in the list? Enter it yourself'}
         </Button>

@@ -9,6 +9,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './app/App';
 import './lib/install';
+import './state/customFoodsStore';
 import { applyTheme, useThemeStore } from './state/themeStore';
 
 applyTheme(useThemeStore.getState().theme);

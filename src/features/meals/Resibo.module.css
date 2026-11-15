@@ -315,3 +315,23 @@
     background: transparent;
   }
 }
+
+/* Editing a plan of one's own */
+
+.editRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s2) var(--s4);
+  margin-top: var(--s2);
+}
+
+.editRow button:last-child {
+  padding-inline: 0;
+}
+
+.emptyMeal {
+  padding-block: var(--s2);
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}

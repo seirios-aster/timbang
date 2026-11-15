@@ -206,7 +206,7 @@ export const STEPS: Step[] = [
   {
     id: 'food',
     title: 'Your food',
-    lead: 'This shapes the meal plan. Change it whenever you like.',
+    lead: 'Choose how meals work. You can change it whenever you like.',
     isComplete: () => true,
     render: ({ draft, update }) => {
       const setPrefs = (patch: Partial<Draft['prefs']>) => update({ prefs: { ...draft.prefs, ...patch } });
@@ -215,53 +215,68 @@ export const STEPS: Step[] = [
       return (
         <>
           <ChoiceList
-            name="budget"
-            legend="Budget"
-            value={draft.prefs.budget}
-            onChange={(budget) => setPrefs({ budget })}
+            name="plan-mode"
+            legend="How do you want to plan meals?"
+            value={draft.planMode}
+            onChange={(planMode) => update({ planMode })}
             choices={[
-              { value: 1, title: 'Tipid', detail: 'Itlog, galunggong, tokwa, manok, monggo' },
-              { value: 2, title: 'Sakto', detail: 'Adds bangus, tapa, baboy, fresh milk' },
-              { value: 3, title: 'Sagana', detail: 'Adds baka, salmon, Greek yogurt' },
+              { value: 'suggested', title: 'Plan my meals', detail: 'A week of Filipino meals that hit your target. Swap anything.' },
+              { value: 'own', title: 'I have my own plan', detail: 'Enter your meals once, then tick them off each day.' },
+              { value: 'track', title: 'Just track', detail: 'No plan. Log what you eat against your target.' },
             ]}
           />
-          <ChoiceList
-            name="meals"
-            legend="Meals a day"
-            layout="cells"
-            value={draft.prefs.mealsPerDay}
-            onChange={(mealsPerDay) => setPrefs({ mealsPerDay })}
-            choices={[
-              { value: 3, title: '3', detail: 'No meryenda' },
-              { value: 4, title: '4', detail: 'One meryenda' },
-              { value: 5, title: '5', detail: 'Two meryenda' },
-            ]}
-          />
-          <fieldset className={styles.chips}>
-            <legend className="eyebrow">Leave out</legend>
-            <div className={styles.chipRow}>
-              {EXCLUSIONS.map(({ tag, label }) => (
-                <CheckChip
-                  key={tag}
-                  id={`exclude-${tag}`}
-                  label={label}
-                  checked={draft.prefs.exclude.includes(tag)}
-                  onChange={(on) => toggle(tag, on)}
-                />
-              ))}
-            </div>
-          </fieldset>
-          <fieldset className={styles.chips}>
-            <legend className="eyebrow">Supplements</legend>
-            <div className={styles.chipRow}>
-              <CheckChip
-                id="has-whey"
-                label="I use whey protein"
-                checked={draft.prefs.hasWhey}
-                onChange={(hasWhey) => setPrefs({ hasWhey })}
+          {draft.planMode === 'suggested' && (
+            <>
+              <ChoiceList
+                name="budget"
+                legend="Budget"
+                value={draft.prefs.budget}
+                onChange={(budget) => setPrefs({ budget })}
+                choices={[
+                  { value: 1, title: 'Tipid', detail: 'Itlog, galunggong, tokwa, manok, monggo' },
+                  { value: 2, title: 'Sakto', detail: 'Adds bangus, tapa, baboy, fresh milk' },
+                  { value: 3, title: 'Sagana', detail: 'Adds baka, salmon, Greek yogurt' },
+                ]}
               />
-            </div>
-          </fieldset>
+              <ChoiceList
+                name="meals"
+                legend="Meals a day"
+                layout="cells"
+                value={draft.prefs.mealsPerDay}
+                onChange={(mealsPerDay) => setPrefs({ mealsPerDay })}
+                choices={[
+                  { value: 3, title: '3', detail: 'No meryenda' },
+                  { value: 4, title: '4', detail: 'One meryenda' },
+                  { value: 5, title: '5', detail: 'Two meryenda' },
+                ]}
+              />
+              <fieldset className={styles.chips}>
+                <legend className="eyebrow">Leave out</legend>
+                <div className={styles.chipRow}>
+                  {EXCLUSIONS.map(({ tag, label }) => (
+                    <CheckChip
+                      key={tag}
+                      id={`exclude-${tag}`}
+                      label={label}
+                      checked={draft.prefs.exclude.includes(tag)}
+                      onChange={(on) => toggle(tag, on)}
+                    />
+                  ))}
+                </div>
+              </fieldset>
+              <fieldset className={styles.chips}>
+                <legend className="eyebrow">Supplements</legend>
+                <div className={styles.chipRow}>
+                  <CheckChip
+                    id="has-whey"
+                    label="I use whey protein"
+                    checked={draft.prefs.hasWhey}
+                    onChange={(hasWhey) => setPrefs({ hasWhey })}
+                  />
+                </div>
+              </fieldset>
+            </>
+          )}
         </>
       );
     },

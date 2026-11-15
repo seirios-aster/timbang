@@ -2,6 +2,12 @@ import type { BudgetTier, DietTag, FoodRole, MealSlot } from '../foods/types';
 
 export type MealsPerDay = 3 | 4 | 5;
 
+/**
+ * How meals are planned. `suggested` builds a week from the food catalog. `own` is a plan the
+ * person enters themselves. `track` has no plan, and food is simply logged against the target.
+ */
+export type PlanMode = 'suggested' | 'own' | 'track';
+
 export interface PlanPrefs {
   budget: BudgetTier;
   mealsPerDay: MealsPerDay;

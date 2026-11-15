@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { BRAND } from '@/config/brand';
+import { usePlanStore } from '@/state/planStore';
 import { useProfileStore } from '@/state/profileStore';
 import { Button } from '@/ui/Button';
 import { Icon } from '@/ui/Icon';
@@ -20,10 +21,12 @@ export function Onboarding({ onDone, onCancel }: OnboardingProps) {
   const savedPrefs = useProfileStore((state) => state.prefs);
   const saveProfile = useProfileStore((state) => state.saveProfile);
   const setPrefs = useProfileStore((state) => state.setPrefs);
+  const savedMode = usePlanStore((state) => state.mode);
+  const setMode = usePlanStore((state) => state.setMode);
 
   const editing = Boolean(savedProfile);
   const [draft, setDraft] = useState<Draft>(() =>
-    savedProfile ? draftFromProfile(savedProfile, savedPrefs) : EMPTY_DRAFT,
+    savedProfile ? draftFromProfile(savedProfile, savedPrefs, savedMode) : EMPTY_DRAFT,
   );
   // -1 is the welcome screen, shown only on first run.
   const [stepIndex, setStepIndex] = useState(editing ? 0 : -1);
@@ -52,6 +55,7 @@ export function Onboarding({ onDone, onCancel }: OnboardingProps) {
     if (!profile) return;
     saveProfile(profile);
     setPrefs(draft.prefs);
+    setMode(draft.planMode);
     onDone();
   };
 

@@ -13,7 +13,7 @@ interface MealLogState {
   /** Marks a planned meal eaten or skipped. A null status clears the mark. */
   markMeal: (date: string, mealId: string, status: MealStatus | null, totals: Macros) => void;
   /** Adds food eaten outside the plan. */
-  addExtra: (date: string, name: string, totals: Macros) => void;
+  addExtra: (date: string, name: string, totals: Macros, meal?: string) => void;
   removeExtra: (date: string, id: string) => void;
   /** Clears the meal marks for a date, keeping extras. Used when that day's menu is replaced. */
   resetMeals: (date: string) => void;
@@ -45,11 +45,11 @@ export const useMealLogStore = create<MealLogState>()(
             return { ...log, meals };
           }),
         ),
-      addExtra: (date, name, totals) =>
+      addExtra: (date, name, totals, meal) =>
         set((state) =>
           update(state, date, (log) => ({
             ...log,
-            extras: [...log.extras, { id: `${Date.now().toString(36)}-${log.extras.length}`, name, totals }],
+            extras: [...log.extras, { id: `${Date.now().toString(36)}-${log.extras.length}`, name, totals, ...(meal ? { meal } : {}) }],
           })),
         ),
       removeExtra: (date, id) =>

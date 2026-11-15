@@ -11,6 +11,13 @@ import { Icon } from '@/ui/Icon';
 import { Stamp } from '@/ui/Stamp';
 import styles from './Resibo.module.css';
 
+/** Present when the plan is the person's own: ways to change what is on it. */
+export interface ResiboEditor {
+  onAddFood: (meal: PlanMeal) => void;
+  onEditMeal: (meal: PlanMeal) => void;
+  onAddMeal: () => void;
+}
+
 /** Present on today's receipt only: what has been eaten, and how to mark more. */
 export interface ResiboTracking {
   log: DayLog;
@@ -27,6 +34,7 @@ interface ResiboProps {
   targets: MacroTargets;
   onSelectItem: (mealId: string, itemIndex: number) => void;
   tracking?: ResiboTracking;
+  editor?: ResiboEditor;
 }
 
 const macroLine = (t: Totals) => `P ${fmtInt(t.protein)} · C ${fmtInt(t.carbs)} · F ${fmtInt(t.fat)}`;
@@ -36,7 +44,7 @@ const macroLine = (t: Totals) => `P ${fmtInt(t.protein)} · C ${fmtInt(t.carbs)}
  * calories, macros and weight, with subtotals per meal and a total.
  * On today's receipt each meal can be stamped eaten or skipped.
  */
-export function Resibo({ day, totals, targets, onSelectItem, tracking }: ResiboProps) {
+export function Resibo({ day, totals, targets, onSelectItem, tracking, editor }: ResiboProps) {
   const serial = String(day.seed % 1_000_000).padStart(6, '0');
   // On a tracked day the bottom line is where the day is heading, not the plan as printed.
   const outlook = tracking?.projected ?? totals;
@@ -88,7 +96,7 @@ export function Resibo({ day, totals, targets, onSelectItem, tracking }: ResiboP
                         <span className={styles.detail}>
                           {fmtPortion(item.portions, food.unit)} · {macroLine(line)}
                         </span>
-                        <span className={styles.grams}>{fmtInt(food.grams * item.portions)} g</span>
+                        {food.grams > 0 && <span className={styles.grams}>{fmtInt(food.grams * item.portions)} g</span>}
                         {!tracked && (
                           <span className={styles.swapIcon}>
                             <Icon name="swap" size={18} />
@@ -99,7 +107,19 @@ export function Resibo({ day, totals, targets, onSelectItem, tracking }: ResiboP
                   );
                 })}
               </ul>
+              {meal.items.length === 0 && editor && <p className={styles.emptyMeal}>No food in this meal yet.</p>}
               <p className={styles.subtotal}>{macroLine(subtotal)}</p>
+
+              {editor && !tracked && (
+                <div className={styles.editRow}>
+                  <Button variant="outline" onClick={() => editor.onAddFood(meal)}>
+                    <Icon name="plus" size={18} /> Add food
+                  </Button>
+                  <Button variant="quiet" onClick={() => editor.onEditMeal(meal)}>
+                    Rename or remove
+                  </Button>
+                </div>
+              )}
 
               {tracking && (
                 <div className={styles.track}>
@@ -125,6 +145,12 @@ export function Resibo({ day, totals, targets, onSelectItem, tracking }: ResiboP
             </section>
           );
         })}
+
+        {editor && (
+          <Button variant="outline" onClick={editor.onAddMeal}>
+            <Icon name="plus" size={18} /> Add a meal
+          </Button>
+        )}
 
         {extras.length > 0 && tracking && (
           <section className={styles.meal}>

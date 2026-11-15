@@ -1,4 +1,4 @@
-import { DEFAULT_PREFS, type PlanPrefs } from '@/domain/mealplan/types';
+import { DEFAULT_PREFS, type PlanMode, type PlanPrefs } from '@/domain/mealplan/types';
 import type { Experience, Goal, Lifestyle, Profile, Sex } from '@/domain/nutrition/types';
 
 /** Answers collected so far. Choices start empty so nothing is assumed for the person. */
@@ -12,6 +12,7 @@ export interface Draft {
   experience?: Experience;
   goal?: Goal;
   prefs: PlanPrefs;
+  planMode: PlanMode;
 }
 
 export const EMPTY_DRAFT: Draft = {
@@ -20,10 +21,11 @@ export const EMPTY_DRAFT: Draft = {
   weightKg: 65,
   trainingDays: 4,
   prefs: DEFAULT_PREFS,
+  planMode: 'suggested',
 };
 
-export function draftFromProfile(profile: Profile, prefs: PlanPrefs): Draft {
-  return { ...profile, prefs };
+export function draftFromProfile(profile: Profile, prefs: PlanPrefs, planMode: PlanMode): Draft {
+  return { ...profile, prefs, planMode };
 }
 
 /** Returns a full profile once every question is answered. Keeps earlier fine-tuning. */

@@ -23,6 +23,8 @@ export interface ExtraFood {
   id: string;
   name: string;
   totals: Macros;
+  /** The meal it belongs to, when tracking without a plan. */
+  meal?: string;
 }
 
 export interface DayLog {
