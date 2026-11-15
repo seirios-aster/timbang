@@ -2,9 +2,12 @@ import type { ReactNode } from 'react';
 import { computeTargets } from '@/domain/nutrition/targets';
 import { PROFILE_LIMITS } from '@/domain/nutrition/types';
 import type { DietTag } from '@/domain/foods/types';
+import { bodyFromDisplay, bodyToDisplay } from '@/lib/units';
+import { useSettingsStore } from '@/state/settingsStore';
 import { CheckChip } from '@/ui/CheckChip';
 import { ChoiceList } from '@/ui/ChoiceList';
 import { Dial } from '@/ui/Dial';
+import { HeightField } from '@/ui/HeightField';
 import { NumberField } from '@/ui/NumberField';
 import type { Draft } from './draft';
 import styles from './Onboarding.module.css';
@@ -49,6 +52,46 @@ function GoalPreview({ draft }: { draft: Draft }) {
   );
 }
 
+function BodyFields({ draft, update }: StepProps) {
+  const system = useSettingsStore((state) => state.units);
+  const imperial = system === 'imperial';
+  const limits = PROFILE_LIMITS.weightKg;
+  return (
+    <>
+      <HeightField value={draft.heightCm} onChange={(heightCm) => update({ heightCm })} system={system} />
+      <NumberField
+        id="weight"
+        label="Weight"
+        unit={imperial ? 'lb' : 'kg'}
+        step={imperial ? 1 : 0.5}
+        digits={1}
+        value={Number(bodyToDisplay(draft.weightKg, system).toFixed(1))}
+        onChange={(value) => update({ weightKg: bodyFromDisplay(value, system) })}
+        min={Math.ceil(bodyToDisplay(limits.min, system))}
+        max={Math.floor(bodyToDisplay(limits.max, system))}
+      />
+    </>
+  );
+}
+
+function UnitChoice() {
+  const units = useSettingsStore((state) => state.units);
+  const setUnits = useSettingsStore((state) => state.setUnits);
+  return (
+    <ChoiceList
+      name="units"
+      legend="Units"
+      layout="cells"
+      value={units}
+      onChange={setUnits}
+      choices={[
+        { value: 'metric', title: 'Metric', detail: 'kg, cm' },
+        { value: 'imperial', title: 'Imperial', detail: 'lb, ft, in' },
+      ]}
+    />
+  );
+}
+
 export const STEPS: Step[] = [
   {
     id: 'you',
@@ -57,6 +100,7 @@ export const STEPS: Step[] = [
     isComplete: (draft) => Boolean(draft.sex),
     render: ({ draft, update }) => (
       <>
+        <UnitChoice />
         <ChoiceList
           name="sex"
           legend="Sex"
@@ -84,28 +128,7 @@ export const STEPS: Step[] = [
     title: 'Your size',
     lead: 'Use your weight from this week. You can update it any time you weigh in.',
     isComplete: () => true,
-    render: ({ draft, update }) => (
-      <>
-        <NumberField
-          id="height"
-          label="Height"
-          unit="cm"
-          value={draft.heightCm}
-          onChange={(heightCm) => update({ heightCm })}
-          {...PROFILE_LIMITS.heightCm}
-        />
-        <NumberField
-          id="weight"
-          label="Weight"
-          unit="kg"
-          step={0.5}
-          digits={1}
-          value={draft.weightKg}
-          onChange={(weightKg) => update({ weightKg })}
-          {...PROFILE_LIMITS.weightKg}
-        />
-      </>
-    ),
+    render: ({ draft, update }) => <BodyFields draft={draft} update={update} />,
   },
   {
     id: 'day',

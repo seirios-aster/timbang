@@ -12,6 +12,7 @@ import { fromKg, toKg, type WeightUnit } from '@/domain/training/units';
 import { fmtLoad, fmtWeight, loadUnit } from '@/features/training/copy';
 import { fmtShortDate } from '@/lib/date';
 import { fmtDecimal, fmtInt } from '@/lib/format';
+import { useUnits } from '@/state/settingsStore';
 import { useTrainingStore } from '@/state/trainingStore';
 import { Sheet } from '@/ui/Sheet';
 import { LiftChart } from './LiftChart';
@@ -161,7 +162,7 @@ function LiftDetail({ stats, unit }: { stats: LiftStats; unit: WeightUnit }) {
 /** Lift history: totals, a list of every lift with its best, and a detail sheet per lift. */
 export function LiftsPanel() {
   const logs = useTrainingStore((state) => state.logs);
-  const unit = useTrainingStore((state) => state.unit);
+  const { weight: unit } = useUnits();
   const [openId, setOpenId] = useState<string | null>(null);
 
   const lifts = allLiftStats(logs);

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { appStorage, storageKey } from './storage';
+import { appStorage } from './storage';
 
 /**
  * Available themes. Each id matches a `[data-theme]` block in src/styles/tokens.css,
@@ -8,13 +8,13 @@ import { appStorage, storageKey } from './storage';
  * `chrome` is the color phones use for the browser bar around the page.
  */
 export const THEMES = [
-  { id: 'light', label: 'Light', chrome: '#e4e8f0' },
   { id: 'dark', label: 'Dark', chrome: '#0a0f24' },
+  { id: 'light', label: 'Light', chrome: '#e4e8f0' },
 ] as const;
 
 export type ThemeId = (typeof THEMES)[number]['id'];
 
-const DEFAULT_THEME: ThemeId = 'light';
+const DEFAULT_THEME: ThemeId = 'dark';
 
 interface ThemeState {
   theme: ThemeId;
@@ -28,7 +28,8 @@ export const useThemeStore = create<ThemeState>()(
       setTheme: (theme) => set({ theme }),
     }),
     {
-      name: storageKey('theme'),
+      // v2: dark became the default, so earlier saved values are not carried over.
+      name: 'timbang.theme.v2',
       storage: appStorage<Pick<ThemeState, 'theme'>>(),
       partialize: ({ theme }) => ({ theme }),
     },

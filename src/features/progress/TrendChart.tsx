@@ -9,6 +9,8 @@ interface TrendChartProps {
   points: TrendPoint[];
   /** Planned change in kg per week, drawn as a dashed line from the first weigh-in. */
   plannedKgPerWeek: number;
+  /** The unit the values are already in. */
+  unit: string;
 }
 
 const HEIGHT = 220;
@@ -40,7 +42,7 @@ function niceTicks(min: number, max: number): number[] {
  * Weight over time. Dots are the weigh-ins, the solid line is the smoothed
  * trend, and the dashed line is where the calorie target says you should be.
  */
-export function TrendChart({ points, plannedKgPerWeek }: TrendChartProps) {
+export function TrendChart({ points, plannedKgPerWeek, unit }: TrendChartProps) {
   const [ref, width] = useWidth();
   const [active, setActive] = useState<number | null>(null);
 
@@ -95,7 +97,7 @@ export function TrendChart({ points, plannedKgPerWeek }: TrendChartProps) {
             width={width}
             height={HEIGHT}
             role="img"
-            aria-label={`Weight from ${fmtShortDate(first.date)} to ${fmtShortDate(last.date)}. Trend went from ${fmtDecimal(first.trendKg)} to ${fmtDecimal(last.trendKg)} kilograms. Every weigh-in is listed in the history below.`}
+            aria-label={`Weight from ${fmtShortDate(first.date)} to ${fmtShortDate(last.date)}. Trend went from ${fmtDecimal(first.trendKg)} to ${fmtDecimal(last.trendKg)} ${unit === 'lb' ? 'pounds' : 'kilograms'}. Every weigh-in is listed in the history below.`}
             className={styles.svg}
             onPointerMove={(event) => pickNearest(event.clientX, event.currentTarget.getBoundingClientRect())}
             onPointerDown={(event) => pickNearest(event.clientX, event.currentTarget.getBoundingClientRect())}

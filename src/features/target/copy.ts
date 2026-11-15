@@ -1,5 +1,6 @@
 import type { Goal, Pace, Targets } from '@/domain/nutrition/types';
 import { fmtDecimal, fmtInt } from '@/lib/format';
+import { bodyToDisplay, weightUnit, type UnitSystem } from '@/lib/units';
 
 export const GOAL_LABEL: Record<Goal, string> = {
   lose: 'Cut',
@@ -22,14 +23,14 @@ export const PACE_CHOICES: Record<Exclude<Goal, 'maintain'>, { value: Pace; titl
 };
 
 /** One plain sentence explaining what the target should do. */
-export function summarize(goal: Goal, targets: Targets): string {
-  const rate = fmtDecimal(Math.abs(targets.weeklyChangeKg), 2);
+export function summarize(goal: Goal, targets: Targets, system: UnitSystem = 'metric'): string {
+  const rate = `${fmtDecimal(bodyToDisplay(Math.abs(targets.weeklyChangeKg), system), 2)} ${weightUnit(system)}`;
   const calories = fmtInt(targets.calories);
   if (goal === 'lose') {
-    return `At ${calories} kcal you should lose about ${rate} kg a week. Protein is set high to protect your muscle while you cut.`;
+    return `At ${calories} kcal you should lose about ${rate} a week. Protein is set high to protect your muscle while you cut.`;
   }
   if (goal === 'gain') {
-    return `At ${calories} kcal you should gain about ${rate} kg a week. That is enough to grow without piling on fat.`;
+    return `At ${calories} kcal you should gain about ${rate} a week. That is enough to grow without piling on fat.`;
   }
   return `At ${calories} kcal your weight should hold steady while your lifts go up.`;
 }

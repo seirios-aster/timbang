@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { nextWorkout } from '@/domain/training/program';
 import { DAYS, todayIndex, todayIso } from '@/lib/date';
 import { useProfileStore } from '@/state/profileStore';
+import { useUnits } from '@/state/settingsStore';
 import { useTrainingStore } from '@/state/trainingStore';
 import { Button } from '@/ui/Button';
 import { DayStrip } from '@/ui/DayStrip';
@@ -18,7 +19,7 @@ import { WorkoutBoard } from './WorkoutBoard';
 export function TrainingScreen() {
   const days = useProfileStore((state) => state.profile?.trainingDays ?? 0);
   const equipment = useTrainingStore((state) => state.equipment);
-  const unit = useTrainingStore((state) => state.unit);
+  const { weight: unit } = useUnits();
   const logs = useTrainingStore((state) => state.logs);
   const session = useTrainingStore((state) => state.session);
   const summary = useTrainingStore((state) => state.summary);

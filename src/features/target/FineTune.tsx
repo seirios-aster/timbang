@@ -1,6 +1,8 @@
 import { defaultProteinPerKg } from '@/domain/nutrition/targets';
 import { PROFILE_LIMITS, type Profile, type Targets } from '@/domain/nutrition/types';
+import { proteinUnit } from '@/lib/units';
 import { useProfileStore } from '@/state/profileStore';
+import { useUnits } from '@/state/settingsStore';
 import { CheckChip } from '@/ui/CheckChip';
 import { ChoiceList } from '@/ui/ChoiceList';
 import { NumberField } from '@/ui/NumberField';
@@ -12,12 +14,17 @@ interface FineTuneProps {
   targets: Targets;
 }
 
+const LB_PER_KG = 2.2046226;
 const DEFAULT_BODY_FAT = { male: 18, female: 26 };
 
 /** Optional controls for people who know their numbers. Everything here has a sensible default. */
 export function FineTune({ profile, targets }: FineTuneProps) {
   const updateProfile = useProfileStore((state) => state.updateProfile);
   const knowsBodyFat = profile.bodyFatPct !== undefined;
+  const { system } = useUnits();
+  // Protein is stored per kg. Imperial users see it per lb.
+  const perUnit = system === 'imperial' ? 1 / LB_PER_KG : 1;
+  const limits = PROFILE_LIMITS.proteinPerKg;
 
   return (
     <details className={styles.fineTune}>
@@ -41,18 +48,20 @@ export function FineTune({ profile, targets }: FineTuneProps) {
         <div>
           <NumberField
             id="protein-per-kg"
-            label="Protein per kg of body weight"
-            unit="g/kg"
+            label={`Protein per ${system === 'imperial' ? 'lb' : 'kg'} of body weight`}
+            unit={proteinUnit(system)}
             size="md"
-            step={0.1}
-            digits={1}
-            value={targets.proteinPerKg}
-            onChange={(proteinPerKg) => updateProfile({ proteinPerKg })}
-            {...PROFILE_LIMITS.proteinPerKg}
+            step={system === 'imperial' ? 0.05 : 0.1}
+            digits={system === 'imperial' ? 2 : 1}
+            value={Number((targets.proteinPerKg * perUnit).toFixed(2))}
+            onChange={(value) => updateProfile({ proteinPerKg: value / perUnit })}
+            min={Number((limits.min * perUnit).toFixed(2))}
+            max={Number((limits.max * perUnit).toFixed(2))}
           />
           <p className={styles.hint}>
-            Default for your goal is {defaultProteinPerKg(profile.goal).toFixed(1)} g/kg. Most lifters do well between
-            1.6 and 2.2.
+            Default for your goal is {(defaultProteinPerKg(profile.goal) * perUnit).toFixed(system === 'imperial' ? 2 : 1)}{' '}
+            {proteinUnit(system)}. Most lifters do well between {(1.6 * perUnit).toFixed(system === 'imperial' ? 2 : 1)} and{' '}
+            {(2.2 * perUnit).toFixed(system === 'imperial' ? 2 : 1)}.
           </p>
         </div>
 

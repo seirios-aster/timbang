@@ -2,6 +2,8 @@ import { useState } from 'react';
 import type { Route } from '@/app/router';
 import { planKey } from '@/domain/mealplan/generator';
 import { fmtDecimal, fmtInt, fmtSigned } from '@/lib/format';
+import { fmtBodyChange, fmtWater, proteinUnit, weightUnit } from '@/lib/units';
+import { useUnits } from '@/state/settingsStore';
 import { useMealLogStore } from '@/state/mealLogStore';
 import { usePlanStore } from '@/state/planStore';
 import { useProfileStore } from '@/state/profileStore';
@@ -15,6 +17,7 @@ import { Icon } from '@/ui/Icon';
 import { Stamp } from '@/ui/Stamp';
 import { GOAL_LABEL, summarize } from './copy';
 import { FineTune } from './FineTune';
+import { Preferences } from './Preferences';
 import styles from './TargetScreen.module.css';
 
 interface TargetScreenProps {
@@ -33,6 +36,7 @@ export function TargetScreen({ go }: TargetScreenProps) {
   const clearMealLog = useMealLogStore((state) => state.clear);
   const targets = useTargets();
   const [confirmingReset, setConfirmingReset] = useState(false);
+  const { system } = useUnits();
 
   if (!profile || !targets) return null;
 
@@ -81,12 +85,12 @@ export function TargetScreen({ go }: TargetScreenProps) {
           <div className={styles.fact}>
             <dt className="eyebrow">Per week</dt>
             <dd className={styles.factValue}>
-              {fmtSigned(targets.weeklyChangeKg, 2)} <span className={styles.factUnit}>kg</span>
+              {fmtBodyChange(targets.weeklyChangeKg, system)} <span className={styles.factUnit}>{weightUnit(system)}</span>
             </dd>
           </div>
         </dl>
 
-        <p className={styles.summary}>{summarize(profile.goal, targets)}</p>
+        <p className={styles.summary}>{summarize(profile.goal, targets, system)}</p>
 
         {targets.floorApplied && (
           <p className={`on-paper ${styles.notice}`}>
@@ -101,13 +105,13 @@ export function TargetScreen({ go }: TargetScreenProps) {
           <h2 id="macros-heading" className={`display ${styles.heading}`}>
             Macros
           </h2>
-          <span className="eyebrow">{fmtDecimal(targets.proteinPerKg, 1)} g protein per kg</span>
+          <span className="eyebrow">{fmtDecimal(system === 'imperial' ? targets.proteinPerKg / 2.2046226 : targets.proteinPerKg, 1)} {proteinUnit(system)} protein</span>
         </div>
         <Barbell proteinG={targets.proteinG} carbsG={targets.carbsG} fatG={targets.fatG} />
         <p className={styles.water}>
           <span className="eyebrow">Water</span>
           <span>
-            About <strong>{fmtDecimal(targets.waterL, 1)} L</strong> a day. Drink more when you train or it is hot.
+            About <strong>{fmtWater(targets.waterL, system)}</strong> a day. Drink more when you train or it is hot.
           </span>
         </p>
       </section>
@@ -118,6 +122,8 @@ export function TargetScreen({ go }: TargetScreenProps) {
       </Button>
 
       <FineTune profile={profile} targets={targets} />
+
+      <Preferences />
 
       <footer className={styles.footer}>
         <div className={styles.footerLinks}>

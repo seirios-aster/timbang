@@ -1,23 +1,71 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#e4e8f0" />
+    <meta name="theme-color" content="#0a0f24" />
+    <meta name="description" content="Calorie targets, Filipino meal plans, guided training and weight tracking for lifters." />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Timbang" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="apple-touch-icon" href="./icon-180.png" />
-    <meta name="description" content="Calorie targets, Filipino meal plans and weight tracking for lifters." />
-    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="apple-touch-startup-image" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="./splash/440x956@3x.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="./splash/430x932@3x.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="./splash/402x874@3x.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="./splash/393x852@3x.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="./splash/428x926@3x.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="./splash/390x844@3x.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="./splash/414x896@3x.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="./splash/414x896@2x.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="./splash/375x812@3x.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="./splash/414x736@3x.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="./splash/375x667@2x.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="./splash/320x568@2x.png" />
     <title>Timbang</title>
     <script>
-      // Apply the saved theme before the first paint, so a dark-theme user never sees a light flash.
-      try {
-        var saved = JSON.parse(localStorage.getItem('timbang.theme.v1') || 'null');
-        if (saved && saved.state && saved.state.theme) document.documentElement.dataset.theme = saved.state.theme;
-      } catch (e) {}
+      // Apply the saved theme before the first paint, so nobody sees a flash of the wrong one. Dark is the default.
+      (function () {
+        var theme = 'dark';
+        try {
+          var saved = JSON.parse(localStorage.getItem('timbang.theme.v2') || 'null');
+          if (saved && saved.state && saved.state.theme === 'light') theme = 'light';
+        } catch (e) {}
+        document.documentElement.dataset.theme = theme;
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute('content', theme === 'light' ? '#e4e8f0' : '#0a0f24');
+      })();
     </script>
+    <style>
+      /* Launch screen. Shown from the first paint until the app is ready, then faded out by main.tsx. */
+      html, body { margin: 0; background: #0a0f24; }
+      html[data-theme='light'], html[data-theme='light'] body { background: #e4e8f0; }
+      #splash {
+        position: fixed; inset: 0; z-index: 100; display: grid; place-items: center;
+        background: #0a0f24; color: #eef0fa; transition: opacity 360ms ease, visibility 360ms;
+      }
+      html[data-theme='light'] #splash { background: #e4e8f0; color: #101b4d; }
+      #splash.out { opacity: 0; visibility: hidden; }
+      #splash svg { width: min(58vw, 16rem); height: auto; overflow: visible; }
+      #splash .fc { fill: #141b3b; stroke: currentColor; stroke-width: 4; }
+      html[data-theme='light'] #splash .fc { fill: #f5f6fa; }
+      #splash .hk { fill: none; stroke: currentColor; stroke-width: 4; }
+      #splash .nk, #splash .hb { fill: currentColor; }
+      #splash .pn { fill: #141b3b; }
+      html[data-theme='light'] #splash .pn { fill: #f5f6fa; }
+      #splash .tk { stroke: currentColor; stroke-opacity: 0.45; stroke-width: 1.5; }
+      #splash .tk.m { stroke-opacity: 1; stroke-width: 3; }
+      #splash .nf { fill: #ff6155; }
+      html[data-theme='light'] #splash .nf { fill: #d6362b; }
+      #splash .nd { transform-origin: 160px 178px; animation: splash-sweep 1.15s cubic-bezier(0.34, 1.4, 0.64, 1) 80ms both; }
+      @keyframes splash-sweep { from { transform: rotate(-100deg); } to { transform: rotate(0deg); } }
+      @media (prefers-reduced-motion: reduce) { #splash .nd { animation: none; } #splash { transition: none; } }
+    </style>
   </head>
   <body>
+    <div id="splash" role="presentation"><svg viewBox="0 0 320 330" aria-hidden="true"><circle cx="160" cy="13" r="8" class="hk"/><rect x="155" y="20" width="10" height="12" class="nk"/><circle cx="160" cy="178" r="148" class="fc"/><line x1="30.0" y1="200.9" x2="45.8" y2="198.1" class="tk m"/><line x1="28.2" y1="185.7" x2="36.2" y2="185.2" class="tk"/><line x1="28.2" y1="170.3" x2="36.2" y2="170.8" class="tk"/><line x1="30.0" y1="155.1" x2="37.9" y2="156.5" class="tk"/><line x1="33.5" y1="140.1" x2="41.2" y2="142.4" class="tk"/><line x1="38.8" y1="125.7" x2="53.5" y2="132.1" class="tk m"/><line x1="45.7" y1="112.0" x2="52.6" y2="116.0" class="tk"/><line x1="54.1" y1="99.2" x2="60.5" y2="104.0" class="tk"/><line x1="64.0" y1="87.4" x2="69.8" y2="92.9" class="tk"/><line x1="75.2" y1="76.9" x2="80.3" y2="83.0" class="tk"/><line x1="87.5" y1="67.7" x2="96.3" y2="81.1" class="tk m"/><line x1="100.8" y1="60.0" x2="104.3" y2="67.2" class="tk"/><line x1="114.9" y1="54.0" x2="117.6" y2="61.5" class="tk"/><line x1="129.6" y1="49.6" x2="131.4" y2="57.3" class="tk"/><line x1="144.7" y1="46.9" x2="145.6" y2="54.8" class="tk"/><line x1="160.0" y1="46.0" x2="160.0" y2="62.0" class="tk m"/><line x1="175.3" y1="46.9" x2="174.4" y2="54.8" class="tk"/><line x1="190.4" y1="49.6" x2="188.6" y2="57.3" class="tk"/><line x1="205.1" y1="54.0" x2="202.4" y2="61.5" class="tk"/><line x1="219.2" y1="60.0" x2="215.7" y2="67.2" class="tk"/><line x1="232.5" y1="67.7" x2="223.7" y2="81.1" class="tk m"/><line x1="244.8" y1="76.9" x2="239.7" y2="83.0" class="tk"/><line x1="256.0" y1="87.4" x2="250.2" y2="92.9" class="tk"/><line x1="265.9" y1="99.2" x2="259.5" y2="104.0" class="tk"/><line x1="274.3" y1="112.0" x2="267.4" y2="116.0" class="tk"/><line x1="281.2" y1="125.7" x2="266.5" y2="132.1" class="tk m"/><line x1="286.5" y1="140.1" x2="278.8" y2="142.4" class="tk"/><line x1="290.0" y1="155.1" x2="282.1" y2="156.5" class="tk"/><line x1="291.8" y1="170.3" x2="283.8" y2="170.8" class="tk"/><line x1="291.8" y1="185.7" x2="283.8" y2="185.2" class="tk"/><line x1="290.0" y1="200.9" x2="274.2" y2="198.1" class="tk m"/><g class="nd"><polygon points="155,198 165,198 161.5,62 158.5,62" class="nf"/></g><circle cx="160" cy="178" r="11" class="hb"/><circle cx="160" cy="178" r="3.5" class="pn"/></svg></div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

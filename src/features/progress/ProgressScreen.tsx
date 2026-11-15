@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { paceReport, sortByDate, trend, daysBetween } from '@/domain/progress/trend';
 import { fmtShortDate } from '@/lib/date';
-import { fmtDecimal, fmtSigned } from '@/lib/format';
+import { bodyToDisplay, fmtBody, fmtBodyChange, fmtBodyNumber } from '@/lib/units';
+import { useUnits } from '@/state/settingsStore';
 import { useProfileStore } from '@/state/profileStore';
 import { useProgressStore } from '@/state/progressStore';
 import { useTargets } from '@/state/useTargets';
@@ -24,6 +25,7 @@ export function ProgressScreen() {
   const entries = useProgressStore((state) => state.entries);
   const remove = useProgressStore((state) => state.remove);
   const targets = useTargets();
+  const { system, weight: unit } = useUnits();
   const [view, setView] = useState<'weight' | 'lifts'>('weight');
 
   if (!profile || !targets) return null;
@@ -71,12 +73,12 @@ export function ProgressScreen() {
         {latest && first ? (
           <>
             <p className={styles.weight}>
-              {fmtDecimal(latest.weightKg)}
-              <span className={styles.weightUnit}>kg</span>
+              {fmtBodyNumber(latest.weightKg, system)}
+              <span className={styles.weightUnit}>{unit}</span>
             </p>
             {latest !== first && (
               <p className={`mono ${styles.since}`}>
-                {fmtSigned(latest.weightKg - first.weightKg, 1)} kg in {daysBetween(first.date, latest.date)} days
+                {fmtBodyChange(latest.weightKg - first.weightKg, system, 1)} {unit} in {daysBetween(first.date, latest.date)} days
               </p>
             )}
           </>
@@ -105,15 +107,15 @@ export function ProgressScreen() {
             <div>
               <dt className="eyebrow">You</dt>
               <dd className={styles.rate}>
-                {report.actualKgPerWeek === undefined ? '—' : fmtSigned(report.actualKgPerWeek, 2)}
-                <span className={styles.rateUnit}>kg / wk</span>
+                {report.actualKgPerWeek === undefined ? '—' : fmtBodyChange(report.actualKgPerWeek, system)}
+                <span className={styles.rateUnit}>{unit} / wk</span>
               </dd>
             </div>
             <div>
               <dt className="eyebrow">Plan</dt>
               <dd className={styles.rate}>
-                {fmtSigned(report.plannedKgPerWeek, 2)}
-                <span className={styles.rateUnit}>kg / wk</span>
+                {fmtBodyChange(report.plannedKgPerWeek, system)}
+                <span className={styles.rateUnit}>{unit} / wk</span>
               </dd>
             </div>
           </dl>
@@ -121,10 +123,10 @@ export function ProgressScreen() {
           {needsRetarget && (
             <div className={`on-paper ${styles.retarget}`}>
               <p>
-                Your target was set for {fmtDecimal(profile.weightKg)} kg. You are now {fmtDecimal(latest.weightKg)} kg.
+                Your target was set for {fmtBody(profile.weightKg, system)}. You are now {fmtBody(latest.weightKg, system)}.
               </p>
               <Button variant="outline" onClick={() => updateProfile({ weightKg: latest.weightKg })}>
-                Update target for {fmtDecimal(latest.weightKg)} kg
+                Update target for {fmtBody(latest.weightKg, system)}
               </Button>
             </div>
           )}
@@ -136,7 +138,11 @@ export function ProgressScreen() {
           <h2 id="trend-heading" className={`display ${styles.heading}`}>
             Trend
           </h2>
-          <TrendChart points={points} plannedKgPerWeek={targets.weeklyChangeKg} />
+          <TrendChart
+            points={points.map((p) => ({ ...p, weightKg: bodyToDisplay(p.weightKg, system), trendKg: bodyToDisplay(p.trendKg, system) }))}
+            plannedKgPerWeek={bodyToDisplay(targets.weeklyChangeKg, system)}
+            unit={unit}
+          />
         </section>
       )}
 
@@ -152,9 +158,9 @@ export function ProgressScreen() {
               return (
                 <li key={point.date} className={styles.entry}>
                   <span className={`mono ${styles.entryDate}`}>{fmtShortDate(point.date)}</span>
-                  <span className={styles.entryWeight}>{fmtDecimal(point.weightKg)} kg</span>
+                  <span className={styles.entryWeight}>{fmtBody(point.weightKg, system)}</span>
                   <span className={`mono ${styles.entryDelta}`}>
-                    {previous ? fmtSigned(point.weightKg - previous.weightKg, 1) : 'start'}
+                    {previous ? fmtBodyChange(point.weightKg - previous.weightKg, system, 1) : 'start'}
                   </span>
                   <button
                     type="button"

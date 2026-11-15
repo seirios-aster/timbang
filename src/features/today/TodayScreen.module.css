@@ -82,6 +82,13 @@
   align-self: flex-start;
 }
 
+.eatActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s2) var(--s4);
+}
+
 /* Today's meals, as a short receipt. */
 .meals {
   width: 100%;
@@ -211,4 +218,23 @@
     text-decoration: underline;
     text-underline-offset: 0.2em;
   }
+}
+
+/* Install card */
+.install {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s3);
+  padding: var(--s4);
+  border: 2px dashed var(--ink);
+  border-radius: var(--radius);
+}
+
+.installTitle {
+  font-size: var(--display-sm);
+}
+
+.install > button:last-child {
+  padding-inline: 0;
 }

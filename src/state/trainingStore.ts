@@ -9,7 +9,6 @@ import {
 } from '@/domain/training/session';
 import { findRecords } from '@/domain/training/stats';
 import type { Equipment, ExerciseLog, Swaps, Workout } from '@/domain/training/types';
-import type { WeightUnit } from '@/domain/training/units';
 import { todayIso } from '@/lib/date';
 import { appStorage, storageKey } from './storage';
 
@@ -18,8 +17,6 @@ const MAX_LOGS = 3000;
 
 interface TrainingState {
   equipment: Equipment;
-  /** The unit the person's gym marks its plates and dumbbells in. Weights are stored in kg either way. */
-  unit: WeightUnit;
   /** Exercises the person picked in place of the defaults. */
   swaps: Swaps;
   logs: ExerciseLog[];
@@ -29,7 +26,6 @@ interface TrainingState {
   summary: SessionSummary | null;
 
   setEquipment: (equipment: Equipment) => void;
-  setUnit: (unit: WeightUnit) => void;
   swap: (key: string, exerciseId: string) => void;
   /** Saves a session for one exercise. Saving the same exercise again that day replaces it. */
   log: (entry: ExerciseLog) => void;
@@ -46,7 +42,7 @@ interface TrainingState {
   clear: () => void;
 }
 
-type Saved = Pick<TrainingState, 'equipment' | 'unit' | 'swaps' | 'logs' | 'session' | 'summary'>;
+type Saved = Pick<TrainingState, 'equipment' | 'swaps' | 'logs' | 'session' | 'summary'>;
 
 /** Adds entries to the logs, replacing any for the same exercise on the same day. */
 function mergeLogs(logs: ExerciseLog[], entries: ExerciseLog[]): ExerciseLog[] {
@@ -54,14 +50,13 @@ function mergeLogs(logs: ExerciseLog[], entries: ExerciseLog[]): ExerciseLog[] {
   return [...logs.filter((log) => !replaced.has(`${log.exerciseId}|${log.date}`)), ...entries].slice(-MAX_LOGS);
 }
 
-const INITIAL: Saved = { equipment: 'gym', unit: 'kg', swaps: {}, logs: [], session: null, summary: null };
+const INITIAL: Saved = { equipment: 'gym', swaps: {}, logs: [], session: null, summary: null };
 
 export const useTrainingStore = create<TrainingState>()(
   persist(
     (set) => ({
       ...INITIAL,
       setEquipment: (equipment) => set({ equipment }),
-      setUnit: (unit) => set({ unit }),
       swap: (key, exerciseId) => set((state) => ({ swaps: { ...state.swaps, [key]: exerciseId } })),
       log: (entry) => set((state) => ({ logs: mergeLogs(state.logs, [entry]) })),
 
@@ -89,9 +84,8 @@ export const useTrainingStore = create<TrainingState>()(
     {
       name: storageKey('training'),
       storage: appStorage<Saved>(),
-      partialize: ({ equipment, unit, swaps, logs, session, summary }) => ({
+      partialize: ({ equipment, swaps, logs, session, summary }) => ({
         equipment,
-        unit,
         swaps,
         logs,
         session,

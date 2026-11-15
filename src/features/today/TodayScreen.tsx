@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Route } from '@/app/router';
 import { getFood } from '@/domain/foods/catalog';
 import { planKey } from '@/domain/mealplan/generator';
@@ -5,10 +6,14 @@ import { mealTotals } from '@/domain/mealplan/totals';
 import { eatenTotals } from '@/domain/mealplan/tracking';
 import { estimateMinutes, nextWorkout } from '@/domain/training/program';
 import { sortByDate } from '@/domain/progress/trend';
+import { AddFoodSheet } from '@/features/meals/AddFoodSheet';
 import { GOAL_LABEL } from '@/features/target/copy';
+import { InstallCard } from './InstallCard';
 import { useProgram } from '@/features/training/useProgram';
 import { DAYS, todayIndex, todayIso } from '@/lib/date';
-import { fmtDecimal, fmtInt } from '@/lib/format';
+import { fmtInt } from '@/lib/format';
+import { fmtBody, fmtWater } from '@/lib/units';
+import { useUnits } from '@/state/settingsStore';
 import { useDayLog, useMealLogStore } from '@/state/mealLogStore';
 import { effectiveDay, usePlanStore } from '@/state/planStore';
 import { useProfileStore } from '@/state/profileStore';
@@ -32,12 +37,16 @@ export function TodayScreen({ go }: TodayScreenProps) {
   const override = usePlanStore((state) => state.override);
   const buildPlan = usePlanStore((state) => state.build);
   const markMeal = useMealLogStore((state) => state.markMeal);
+  const addExtra = useMealLogStore((state) => state.addExtra);
+  const removeExtra = useMealLogStore((state) => state.removeExtra);
+  const [addingFood, setAddingFood] = useState(false);
   const dayLog = useDayLog(todayIso());
   const entries = useProgressStore((state) => state.entries);
   const logs = useTrainingStore((state) => state.logs);
   const session = useTrainingStore((state) => state.session);
   const beginSession = useTrainingStore((state) => state.beginSession);
   const targets = useTargets();
+  const { system } = useUnits();
   const { program } = useProgram();
 
   if (!profile || !targets) return null;
@@ -197,9 +206,33 @@ export function TodayScreen({ go }: TodayScreenProps) {
                 );
               })}
             </ul>
-            <Button variant="outline" onClick={() => go('meals')}>
-              Skip, swap or add food
-            </Button>
+            {dayLog.extras.length > 0 && (
+              <ul className={styles.meals} aria-label="Extras">
+                {dayLog.extras.map((extra) => (
+                  <li key={extra.id} className={styles.meal}>
+                    <span className={styles.mealName}>Extra</span>
+                    <span className={`mono ${styles.mealKcal}`}>{fmtInt(extra.totals.kcal)}</span>
+                    <span className={styles.mealItems}>{extra.name}</span>
+                    <button
+                      type="button"
+                      className={styles.tick}
+                      aria-label={`Remove ${extra.name}`}
+                      onClick={() => removeExtra(today, extra.id)}
+                    >
+                      <Icon name="close" size={18} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className={styles.eatActions}>
+              <Button variant="outline" onClick={() => setAddingFood(true)}>
+                <Icon name="plus" size={18} /> Ate something else
+              </Button>
+              <Button variant="quiet" onClick={() => go('meals')}>
+                Skip or swap meals
+              </Button>
+            </div>
           </>
         ) : (
           <>
@@ -222,6 +255,14 @@ export function TodayScreen({ go }: TodayScreenProps) {
         )}
       </section>
 
+      <AddFoodSheet
+        open={addingFood}
+        onClose={() => setAddingFood(false)}
+        onAdd={(name, totals) => addExtra(today, name, totals)}
+      />
+
+      <InstallCard />
+
       {/* Weigh in, water, target */}
       <ul className={styles.rows}>
         <li>
@@ -229,9 +270,9 @@ export function TodayScreen({ go }: TodayScreenProps) {
             <span className={`mono ${styles.label}`}>Weigh in</span>
             <span className={styles.rowValue}>
               {weighedToday && lastWeighIn
-                ? `${fmtDecimal(lastWeighIn.weightKg)} kg, logged today`
+                ? `${fmtBody(lastWeighIn.weightKg, system)}, logged today`
                 : lastWeighIn
-                  ? `Last: ${fmtDecimal(lastWeighIn.weightKg)} kg. Log today's`
+                  ? `Last: ${fmtBody(lastWeighIn.weightKg, system)}. Log today's`
                   : 'Log your first weigh-in'}
             </span>
             <span className={weighedToday ? styles.rowDone : styles.rowGo}>
@@ -242,7 +283,7 @@ export function TodayScreen({ go }: TodayScreenProps) {
         <li>
           <div className={styles.row}>
             <span className={`mono ${styles.label}`}>Water</span>
-            <span className={styles.rowValue}>About {fmtDecimal(targets.waterL)} L</span>
+            <span className={styles.rowValue}>About {fmtWater(targets.waterL, system)}</span>
           </div>
         </li>
         <li>

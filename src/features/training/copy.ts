@@ -14,10 +14,6 @@ export const EQUIPMENT_CHOICES: { value: Equipment; title: string; detail: strin
   { value: 'bodyweight', title: 'No equipment', detail: 'Bodyweight only. A pull-up bar helps.' },
 ];
 
-export const UNIT_CHOICES: { value: WeightUnit; title: string; detail: string }[] = [
-  { value: 'kg', title: 'kg', detail: '20 kg bar' },
-  { value: 'lb', title: 'lb', detail: '45 lb bar' },
-];
 
 export const BASIS_STAMP: Record<LoadBasis, { label: string; tone: 'ink' | 'green' | 'red' | 'blue' }> = {
   start: { label: 'Start here', tone: 'blue' },

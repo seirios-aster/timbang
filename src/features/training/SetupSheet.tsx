@@ -1,11 +1,12 @@
 import { MAX_TRAINING_DAYS, MIN_TRAINING_DAYS } from '@/domain/training/splits';
 import { useProfileStore } from '@/state/profileStore';
+import { useSettingsStore } from '@/state/settingsStore';
 import { useTrainingStore } from '@/state/trainingStore';
 import { Button } from '@/ui/Button';
 import { ChoiceList } from '@/ui/ChoiceList';
 import { NumberField } from '@/ui/NumberField';
 import { Sheet } from '@/ui/Sheet';
-import { EQUIPMENT_CHOICES, UNIT_CHOICES } from './copy';
+import { EQUIPMENT_CHOICES } from './copy';
 import styles from './TrainingScreen.module.css';
 
 interface SetupSheetProps {
@@ -19,8 +20,8 @@ export function SetupSheet({ open, onClose }: SetupSheetProps) {
   const updateProfile = useProfileStore((state) => state.updateProfile);
   const equipment = useTrainingStore((state) => state.equipment);
   const setEquipment = useTrainingStore((state) => state.setEquipment);
-  const unit = useTrainingStore((state) => state.unit);
-  const setUnit = useTrainingStore((state) => state.setUnit);
+  const units = useSettingsStore((state) => state.units);
+  const setUnits = useSettingsStore((state) => state.setUnits);
 
   return (
     <Sheet open={open} onClose={onClose} eyebrow="Training" title="Your setup">
@@ -50,15 +51,18 @@ export function SetupSheet({ open, onClose }: SetupSheetProps) {
         <div>
           <ChoiceList
             name="weight-unit"
-            legend="Your gym's plates are in"
+            legend="Units"
             layout="cells"
-            value={unit}
-            onChange={setUnit}
-            choices={UNIT_CHOICES}
+            value={units}
+            onChange={setUnits}
+            choices={[
+              { value: 'metric', title: 'Metric', detail: 'kg plates, kg body weight' },
+              { value: 'imperial', title: 'Imperial', detail: 'lb plates, lb body weight' },
+            ]}
           />
           <p className={styles.hint}>
-            Check the number stamped on a plate. Suggested weights, jumps and the plate diagram follow this. Your
-            history is kept either way.
+            Check the number stamped on a plate. Suggested weights, jumps and the plate diagram follow this, and so do
+            your body weight and height. Your history is kept either way.
           </p>
         </div>
         <Button size="lg" block onClick={onClose}>
