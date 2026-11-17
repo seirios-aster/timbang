@@ -8,6 +8,7 @@ import './styles/global.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './app/App';
+import { ErrorBoundary } from './app/ErrorBoundary';
 import './lib/install';
 import './state/customFoodsStore';
 import { applyTheme, useThemeStore } from './state/themeStore';
@@ -17,7 +18,9 @@ useThemeStore.subscribe((state) => applyTheme(state.theme));
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </StrictMode>,
 );
 

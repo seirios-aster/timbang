@@ -118,6 +118,8 @@ function LogForm({ exercise, planned, suggestedKg, done, previous, unit, today, 
 /** Opens from a line on the workout board: how to do the lift, what to load, a log, and swaps. */
 export function ExerciseSheet({ workout, slot, logs, lifter, equipment, unit, today, onClose }: ExerciseSheetProps) {
   const swap = useTrainingStore((state) => state.swap);
+  // Hooks go above the early return below. Calling one after it changes the hook count when the sheet opens.
+  const deload = useDeloadActive();
   const planned = slot === null ? undefined : workout.exercises.find((candidate) => candidate.slot === slot);
 
   if (!planned) {
@@ -131,7 +133,6 @@ export function ExerciseSheet({ workout, slot, logs, lifter, equipment, unit, to
   const exercise = getExercise(planned.exerciseId);
   const previous = lastLog(logs, exercise.id, today);
   const done = logs.find((log) => log.exerciseId === exercise.id && log.date === today);
-  const deload = useDeloadActive();
   const advice = adviseLoad(exercise, planned, previous, lifter, unit, { deload });
   const stamp = BASIS_STAMP[advice.basis];
   const best = liftStats(logs, exercise.id);
