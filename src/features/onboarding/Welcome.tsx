@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
 import { BRAND } from '@/config/brand';
+import { AccountSection } from '@/features/target/AccountSection';
+import { useAccountStore } from '@/state/accountStore';
 import { Button } from '@/ui/Button';
 import { Dial } from '@/ui/Dial';
 import { Icon, type IconName } from '@/ui/Icon';
+import { Sheet } from '@/ui/Sheet';
 import { ThemeToggle } from '@/ui/ThemeToggle';
 import styles from './Onboarding.module.css';
 
@@ -28,6 +31,8 @@ interface WelcomeProps {
 /** First screen. Sized to fit one phone screen, so the button is visible without scrolling. */
 export function Welcome({ onStart }: WelcomeProps) {
   const [index, setIndex] = useState(0);
+  const [signingIn, setSigningIn] = useState(false);
+  const signedIn = useAccountStore((state) => state.user !== null);
 
   useEffect(() => {
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -67,7 +72,14 @@ export function Welcome({ onStart }: WelcomeProps) {
           Get my plan <Icon name="arrowRight" />
         </Button>
         <p className={styles.fine}>Six quick questions. For adults 18 and up. Estimates, not medical advice.</p>
+        <Button variant="quiet" className={styles.haveAccount} onClick={() => setSigningIn(true)}>
+          {signedIn ? 'Your account' : 'I already have an account'}
+        </Button>
       </div>
+
+      <Sheet open={signingIn} onClose={() => setSigningIn(false)} title="Sign in" eyebrow="Get your data back">
+        <AccountSection heading={false} />
+      </Sheet>
     </div>
   );
 }

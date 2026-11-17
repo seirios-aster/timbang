@@ -1,0 +1,102 @@
+.account {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.lead {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+.who {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.email {
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+
+.status {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}
+
+.problem {
+  font-size: var(--text-sm);
+  color: var(--red);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.label {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.input {
+  min-height: 3rem;
+  padding: 0 var(--s3);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius);
+  background: var(--surface);
+  /* 16px or more stops iOS from zooming the page when the field is focused. */
+  font-size: 1rem;
+}
+
+.code {
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  letter-spacing: 0.3em;
+  text-align: center;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s2);
+}
+
+.or {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}
+
+.fine {
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}
+
+.fine a {
+  color: inherit;
+  text-underline-offset: 2px;
+}
+
+.danger {
+  color: var(--red);
+}
+
+.sheetBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.sheetBody p {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}

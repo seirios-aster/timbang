@@ -11,8 +11,10 @@ import { App } from './app/App';
 import { ErrorBoundary } from './app/ErrorBoundary';
 import './lib/install';
 import './state/customFoodsStore';
+import { useAccountStore } from './state/accountStore';
 import { applyTheme, useThemeStore } from './state/themeStore';
 
+void useAccountStore.getState().init();
 applyTheme(useThemeStore.getState().theme);
 useThemeStore.subscribe((state) => applyTheme(state.theme));
 

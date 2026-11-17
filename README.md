@@ -24,7 +24,7 @@ Pushing to `main` runs the tests, builds, and deploys to GitHub Pages (`.github/
 | Screen | What it does |
 |---|---|
 | Today | Home. Today's workout, meals, steps and weigh-in in one place. |
-| Target | Calorie and macro targets for cutting, maintaining or building. Optional fine-tuning of pace, protein and body fat. Settings: units, install. |
+| Target | Calorie and macro targets for cutting, maintaining or building. Optional fine-tuning of pace, protein and body fat. Settings: units, account, install. |
 | Meals | Three ways to handle food, chosen in setup and changeable any time: **suggested** (a week of Filipino meals that hit the target, with swaps), **my own plan** (enter meals once, from the food list or your own numbers), or **just track** (no plan, log food against the target). On the day, meals are marked eaten or skipped and off-plan food is added. |
 | Training | A weekly split chosen from the number of lifting days, with exercises for a gym, dumbbells or no equipment. Each lift has sets, reps, rest, a suggested weight, a moving stick figure and a video link. Any lift can be changed for a suggestion or anything in the catalog. A guided session runs set by set, with a set clock, a big rest countdown, and a hold timer for planks and wall sits. |
 | Progress | Weigh-in log, a smoothed trend, and a pace check against the plan, with an offer to correct the calorie estimate. A Lifts view shows records, estimated one-rep max and history per lift. |
@@ -32,9 +32,10 @@ Pushing to `main` runs the tests, builds, and deploys to GitHub Pages (`.github/
 Also: dark (default) and light themes, metric or imperial units, steps tracking, and the app can be added to a
 phone's home screen and opens offline.
 
-Everything is saved in the browser on the device. There are no accounts and no server, and the app never sends your
-data anywhere. After it loads it only fetches its own files, which it keeps for offline use. The only outside link is
-"Watch it done on YouTube", which opens in a new tab.
+Everything is saved in the browser on the device, and the app works fully without an account. Signing in is optional
+and only adds a copy in the cloud that follows you between devices (see [Accounts and sync](#accounts-and-sync)).
+Without an account the app never sends your data anywhere: after it loads it only fetches its own files, which it
+keeps for offline use. The only outside link is "Watch it done on YouTube", which opens in a new tab.
 
 ## How the code is organized
 
@@ -48,13 +49,15 @@ src/
     training/    Exercise catalog, splits, program builder, weight guidance,
                  effort and progression, kg and lb systems, guided-session rules, stats
     progress/    Trend smoothing and pace checks
+    sync/        Cloud sync: change detection, merge rules (no network, no stores)
   state/         Saved app state and its storage (one store per concern)
+  sync/          Connects the sync rules to the stores and to Supabase (loaded only when signed in)
   features/      One folder per screen
   ui/            Shared building blocks: Button, Dial, Sheet, DateStepper, ...
   app/           App frame, tab navigation, routing
   styles/        Design tokens (colors, type, spacing) and global styles
   lib/           Formatting, units, dates, install and device helpers
-  config/        Brand name
+  config/        Brand name, Supabase address and public key
 ```
 
 Dependencies point one way. `features` use `state`, `ui` and `domain`. `domain` uses nothing else. A change to how
@@ -73,6 +76,50 @@ calories are computed never touches a screen, and a redesign never touches the m
 - **Change colors or add a theme:** `src/styles/tokens.css`. A theme is one block of color tokens, listed in
   `src/state/themeStore.ts`.
 - **Add accounts and sync:** replace the storage in `src/state/storage.ts`. The stores do not need to change.
+
+## Accounts and sync
+
+Optional. The app is built local-first: it always reads and writes the data on the device, so it is fast and works
+offline. Signing in adds a copy in the cloud, kept with [Supabase](https://supabase.com) (Postgres, Singapore region).
+
+**Sign-in.** Google, or a one-time code sent by email. There are no passwords. The sign-in uses the PKCE flow, so no
+tokens appear in the address bar (which the app's hash routes would otherwise break). On an iPhone, a link in an email
+opens in Safari, which cannot hand the session to the installed home-screen app, so the email carries a code to type
+in as well as a link.
+
+**What is synced**, as eight independent pieces: profile and preferences, meal plan, meal log, training (lift history,
+swaps, equipment, deload), weigh-ins, steps, custom foods, and the units setting. A workout in progress, the theme and
+the "add to home screen" card stay on the device.
+
+**How a sync works** (`src/domain/sync/engine.ts`, tested without a network):
+
+1. For each piece, the device remembers the server's `updated_at` of the copy it last synced, and a snapshot of the
+   data at that moment. A change is "the data now differs from the snapshot". The cloud copy is "newer" when its
+   `updated_at` differs from the one remembered. Only the server's clock is ever compared with itself, so a phone
+   with the wrong time cannot cause lost data.
+2. Nothing in the cloud yet: send ours, unless there is nothing to send.
+3. Cloud unchanged: send ours if we changed it.
+4. Cloud changed, ours did not: take the cloud copy.
+5. Both changed: merge, then send. Writes are conditional (`update ... where updated_at = <what we saw>`), so if
+   another device wrote in between, the write is refused and the sync runs again from the top.
+
+**Merge rules** (`src/domain/sync/merge.ts`). Lists such as food logs, lift history, weigh-ins and steps are combined
+by their natural key (date, entry id), and where both devices have the same key the cloud version wins. Settings-like
+data (profile, plan, units) is taken from the cloud. Two limits to know about: an item deleted on one device and edited
+on the other comes back, and if two devices edit the same setting at once the cloud one wins.
+
+**Signing in on a device that has someone else's data.** The device remembers which account it last synced. If a
+different account signs in, the app asks: use the new account's data (replacing what is on the phone), or add this
+phone's data to it. Data is never mixed without asking.
+
+**Security.** The only table is `public.user_data` (`user_id`, `store`, `data`, `updated_at`), with row level security
+so a signed-in user can read and write only their own rows, and a trigger that sets `updated_at` on the server. The
+key in `src/config/supabase.ts` is the *publishable* key, which is meant to be public: it can do nothing the policies
+do not allow. A service-role key must never be put in the app. Deleting an account runs `delete_my_account()`, which
+removes the caller's rows and their login. The policies were checked against the live database with two test users:
+neither can see, change or delete the other's rows, and a signed-out request sees nothing.
+
+The privacy statement is `public/privacy.html`, served at `/timbang/privacy.html`.
 
 ## How the numbers are worked out
 
@@ -275,11 +322,16 @@ quoting them anywhere official.
   progression thresholds.
 - **Check the legal and safety text.** The app says its numbers are estimates and that it is not medical advice, and
   it limits itself to adults with a calorie floor. Have that wording reviewed for the places it will be used.
-- **Sync and accounts.** Data lives on one device. Clearing the browser loses it.
+- **Finish the sign-in set-up in the Supabase and Google dashboards.** Those settings belong to the project owner
+  and cannot be set from the code: the site URL and redirect URL, the Google provider with its OAuth client and
+  consent screen (which needs the privacy page URL), custom SMTP for email (the built-in sender is limited to a few
+  emails an hour), and the Magic Link email template, which must include `{{ .Token }}` so the code appears.
+- **Back up the cloud data.** The free Supabase plan has no scheduled backups and pauses projects after a week of
+  no use. Move to a paid plan before relying on it.
 
 ## Not built yet
 
-Accounts and cross-device sync, progress photos and body measurements, a grocery list, a weekly review screen,
+Sign-in with Apple or Facebook, progress photos and body measurements, a grocery list, a weekly review screen,
 barcode scanning, custom exercises typed in by the user, real exercise videos or illustrations in place of stick
 figures, reminders (a website cannot send them when closed), and reading steps automatically (a website cannot read
 a phone's step counter, so steps are typed in).
